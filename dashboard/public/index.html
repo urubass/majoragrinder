@@ -7,42 +7,43 @@
   <link rel="stylesheet" href="./style.css"/>
 </head>
 <body>
-  <header>
-    <h1>Workspace Activity Dashboard</h1>
-    <div class="meta">
-      <span id="statusDot" class="dot"></span>
-      <span id="healthText">loading…</span>
-      <button id="refreshBtn" type="button">Refresh</button>
+<header>
+  <h1>Workspace Activity Dashboard</h1>
+  <div class="meta">
+    <span id="statusDot" class="dot"></span>
+    <span id="healthText">loading…</span>
+    <button id="refreshBtn" type="button">Refresh</button>
+  </div>
+</header>
+
+<main class="grid">
+  <section class="card">
+    <h2>Health</h2>
+    <pre id="health" class="pre"></pre>
+  </section>
+
+  <section class="card">
+    <h2>Recent files</h2>
+    <pre id="recent" class="pre"></pre>
+  </section>
+
+  <section class="card">
+    <h2>Tail</h2>
+    <div class="row">
+      <input id="tailPath" type="text" list="tailPathList" placeholder="/tmp/openclaw/openclaw.log"/>
+      <datalist id="tailPathList"></datalist>
+      <input id="tailN" type="number" min="20" max="2000" value="200"/>
+      <button id="tailBtn" type="button">Load</button>
     </div>
-  </header>
+    <pre id="tail" class="pre"></pre>
+    <p class="hint">Read-only. Paths are allowlisted by the server.</p>
+  </section>
+</main>
 
-  <main class="grid">
-    <section class="card">
-      <h2>Health</h2>
-      <pre id="health" class="pre"></pre>
-    </section>
+<footer>
+  <span>Local-only • Read-only</span>
+</footer>
 
-    <section class="card">
-      <h2>Recent files</h2>
-      <pre id="recent" class="pre"></pre>
-    </section>
-
-    <section class="card">
-      <h2>Tail</h2>
-      <div class="row">
-        <select id="tailPath"></select>
-        <input id="tailN" type="number" min="20" max="2000" value="200"/>
-        <button id="tailBtn" type="button">Load</button>
-      </div>
-      <pre id="tail" class="pre"></pre>
-      <p class="hint">Read-only. Paths are allowlisted by the server.</p>
-    </section>
-  </main>
-
-  <footer>
-    <span>Local-only • Read-only</span>
-  </footer>
-
-  <script src="./app.js"></script>
+<script src="./app.js"></script>
 </body>
 </html>
