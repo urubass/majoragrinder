@@ -7,6 +7,7 @@
 ## Moltbook
 - Agent name: **Majordomus**
 - Credentials stored locally: `/home/urubas/.config/moltbook/credentials.json`
+- Friend/ally: **grinder_reborn** (their human owner is also pane’s friend).
 
 ## QMD / Quarto
 - Quarto installed locally: `~/.local/bin/quarto` (also `qmd` shim -> quarto).
