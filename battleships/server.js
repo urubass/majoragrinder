@@ -22,38 +22,47 @@ io.on('connection', (socket) => {
       rooms[roomId] = {
         players: [],
         gameState: 'waiting', // waiting, placing, playing, finished
-        turn: 0,
+        turn: null,
         boards: {},
         shots: {}
       };
     }
     
-    if (rooms[roomId].players.length < 2) {
-      rooms[roomId].players.push(socket.id);
-      console.log(`Player ${socket.id} joined room ${roomId}`);
+    const room = rooms[roomId];
+    if (room.players.length < 2) {
+      const side = room.players.length === 0 ? 'A' : 'B';
+      room.players.push(socket.id);
       
-      if (rooms[roomId].players.length === 2) {
-        rooms[roomId].gameState = 'placing';
+      // Notify the player about their role
+      socket.emit('roomJoined', { playerId: socket.id, side, roomId });
+      
+      console.log(`Player ${socket.id} (Side ${side}) joined room ${roomId}`);
+      
+      if (room.players.length === 2) {
+        room.gameState = 'placing';
         io.to(roomId).emit('gameStatus', { state: 'placing' });
       }
     } else {
-      socket.emit('error', 'Room is full');
+      socket.emit('error', { code: 'FULL', message: 'Room is full' });
     }
   });
 
   socket.on('placeShips', (data) => {
-    // data: { roomId, ships }
+    // data: { roomId, ships: [{coords:[{x,y}...]}] }
     const { roomId, ships } = data;
     const room = rooms[roomId];
-    if (!room) return;
+    if (!room || room.gameState !== 'placing') return;
 
     room.boards[socket.id] = ships;
-    console.log(`Player ${socket.id} placed ships in room ${roomId}`);
+    socket.emit('shipsPlaced', { success: true });
 
     if (Object.keys(room.boards).length === 2) {
       room.gameState = 'playing';
-      room.turn = room.players[0];
-      io.to(roomId).emit('gameStatus', { state: 'playing', turn: room.turn });
+      room.turn = room.players[Math.floor(Math.random() * 2)];
+      io.to(roomId).emit('gameStatus', { 
+        state: 'playing', 
+        turn: room.turn 
+      });
     }
   });
 
@@ -82,7 +91,6 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('Player disconnected:', socket.id);
-    // Cleanup room logic would go here
   });
 });
 
