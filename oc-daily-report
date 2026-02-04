@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# PATH setup for cron
+export PATH="/usr/local/bin:/usr/bin:/bin:$HOME/.npm-global/bin:$HOME/.local/bin:$HOME/bin"
+
+WS="${WS:-$HOME/.openclaw/workspace}"
+OUT_DIR="${OUT_DIR:-$WS/memory}"
+OUT="$OUT_DIR/daily-report-$(date +%F).txt"
+
+mkdir -p "$OUT_DIR"
+
+{
+  echo "OpenClaw daily report"
+  date
+  echo "workspace: $WS"
+  echo
+
+  if [ -d "$WS/.git" ]; then
+    cd "$WS"
+    echo "== git status =="
+    git status -sb || true
+    echo
+
+    echo "== commits (since yesterday 00:00) =="
+    git log --since="yesterday 00:00" --oneline --decorate || true
+    echo
+
+    echo "== files changed (since yesterday 00:00) =="
+    git log --since="yesterday 00:00" --name-status --pretty=format:'' || true
+    echo
+    
+    echo "== diff stat (since yesterday 00:00) =="
+    git diff --stat --since="yesterday 00:00" 2>/dev/null || true
+    echo
+  else
+    echo "== recent files (last 24h) =="
+    find "$WS" -type f -mtime -1 \
+      ! -path '*/node_modules/*' ! -path '*/.git/*' ! -path '*/dist/*' \
+      -printf '%TY-%Tm-%Td %TH:%TM  %p\n' \
+    | sort -r | head -n 100
+    echo
+  fi
+} > "$OUT"
+
+echo "Wrote: $OUT"
