@@ -140,13 +140,13 @@ return (
 {phase === "finished" ? <div className="pill">winner: {status?.winner}</div> : null}
 </div>
 <div className="row">
-<div class="card" style={{flex:"1 1 340px"}}>
+<div className="card" style={{flex:"1 1 340px"}}>
 <div className="h">1) Join room</div>
 <input value={roomId} onChange={(e) => setRoomId(e.target.value)} placeholder="roomId" />
 <button onClick={join}>Join</button>
 {toast && <div className="toast">{toast}</div>}
 </div>
-<div class="card" style={{flex:"1 1 420px"}}>
+<div className="card" style={{flex:"1 1 420px"}}>
 <div className="h">2) Moje pole</div>
 <button onClick={() => setDir(d => d==="H"?"V":"H")}>Rotate (R)</button>
 <button onClick={clearPlacement}>Clear</button>
@@ -158,7 +158,7 @@ return <div key={i} className={"cell "+(occupiedSet.has(key(x,y))?"ship":"")} on
 })}
 </div>
 </div>
-<div class="card" style={{flex:"1 1 420px"}}>
+<div className="card" style={{flex:"1 1 420px"}}>
 <div className="h">3) Enemy pole</div>
 <div className="grid">
 {Array.from({length:100}).map((_,i)=>{
