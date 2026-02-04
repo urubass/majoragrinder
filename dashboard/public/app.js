@@ -6,39 +6,58 @@ async function j(url) {
   return r.json();
 }
 
+function pretty(v) {
+  return typeof v === 'string' ? v : JSON.stringify(v, null, 2);
+}
+
 async function refreshHealth() {
   const out = await j('/api/health');
-  const txt = JSON.stringify(out, null, 2);
-  $('health').textContent = txt;
-  $('healthText').textContent = out.ok ? 'ok' : 'error';
-  $('statusDot').className = 'dot ' + (out.ok ? 'ok' : 'bad');
+  const ok = out && out.status === 'running';
+
+  $('health').textContent = pretty(out);
+  $('healthText').textContent = ok ? 'ok' : (out?.status || 'error');
+  $('statusDot').className = 'dot ' + (ok ? 'ok' : 'bad');
 }
 
 async function refreshRecent() {
   const out = await j('/api/recent-files');
-  $('recent').textContent = (out && out.text) ? out.text : JSON.stringify(out, null, 2);
+
+  if (out && Array.isArray(out.files)) {
+    $('recent').textContent = out.files.filter(Boolean).join('\n');
+  } else if (out && typeof out.text === 'string') {
+    $('recent').textContent = out.text;
+  } else {
+    $('recent').textContent = pretty(out);
+  }
 }
 
 async function loadTail() {
-  const path = $('tailPath').value;
+  const path = $('tailPath').value.trim();
   const n = Number($('tailN').value || 200);
+
+  if (!path) {
+    $('tail').textContent = 'Please enter a path.';
+    return;
+  }
+
   const out = await j(`/api/tail?path=${encodeURIComponent(path)}&n=${encodeURIComponent(n)}`);
-  $('tail').textContent = out.text || '';
+  $('tail').textContent = out.content ?? out.text ?? '';
 }
 
-async function initTailOptions() {
-  // server exposes allowlisted options via recent-files payload when available
+function initTailOptions() {
   const options = [
-    '/tmp/openclaw/openclaw-2026-02-04.log',
-    '/tmp/openclaw',
+    '/tmp/openclaw/',
+    '/tmp/openclaw/openclaw.log'
   ];
-  // Keep it simple: user can paste path by editing DOM? no. Provide minimal.
-  $('tailPath').innerHTML = '';
+
+  const list = $('tailPathList');
+  if (!list) return;
+
+  list.innerHTML = '';
   for (const p of options) {
     const opt = document.createElement('option');
     opt.value = p;
-    opt.textContent = p;
-    $('tailPath').appendChild(opt);
+    list.appendChild(opt);
   }
 }
 
@@ -50,6 +69,7 @@ async function refreshAll() {
     $('healthText').textContent = 'error';
     $('statusDot').className = 'dot bad';
   }
+
   try {
     await refreshRecent();
   } catch (e) {
@@ -60,6 +80,7 @@ async function refreshAll() {
 document.addEventListener('DOMContentLoaded', async () => {
   $('refreshBtn').addEventListener('click', refreshAll);
   $('tailBtn').addEventListener('click', loadTail);
-  await initTailOptions();
+
+  initTailOptions();
   await refreshAll();
 });
