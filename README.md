@@ -52,10 +52,15 @@ node bin/index.js dotace
 node bin/index.js dotace --json
 
 node bin/index.js kampan
+
+node bin/index.js news
+node bin/index.js live --every 5
 ```
 
 - `status --json` = strojovo čitateľný výstup (pre dashboard/boty)
 - `dotace --json` = `{ dotaceCzk: number }`
+- `news` = **CNN reportáž** (Babiš & Grinder TV)
+- `live` = TV ticker (opakované news)
 
 ---
 
