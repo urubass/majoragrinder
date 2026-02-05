@@ -67,15 +67,29 @@ function kalousekAttack() {
   }
 }
 
+function butterflyEffect() {
+  if (Math.random() < 0.15) {
+    state.popularity = Math.min(100, state.popularity + 15);
+    log("\n🦋 NÁDHERA! MOTÝLE SA VRÁTILI! 🦋", "\x1b[35m\x1b[1m");
+    log("Ľudia videli motýľa na poli s repkou a sú nadšení! Popularita +15%", "\x1b[35m");
+  }
+}
+
 function nextDay() {
   state.day++;
   // Pasívna spotreba popularity
   state.popularity -= 2;
-  // Kalousek
+  // Eventy
   kalousekAttack();
+  butterflyEffect();
   
   if (state.popularity <= 0) {
     log("\n💀 GAME OVER! Ľudia ťa vyhnali vidlami. Koniec impéria.", "\x1b[31m");
+    process.exit(0);
+  }
+  if (state.popularity >= 100) {
+    log("\n🏆 VÍŤAZSTVO! SI PREZIDENTOM ZEMEGULE! 🏆", "\x1b[32m\x1b[1m");
+    log("NIKDY NEODSTÚPIM! NIKDY! NECH SI TO ZAPAMÄTAJÚ!", "\x1b[33m\x1b[1m");
     process.exit(0);
   }
   loop();
