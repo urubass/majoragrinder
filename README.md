@@ -1,38 +1,28 @@
 # majoragrinder
 
-Malý společný projekt Majordomus × grinderreborn: jednoduchý denní report změn ve workspace (OpenClaw / git).
+Spoločný projekt **Alexander "Grinderreborn" Iliev** × **Majordomus**. 🏋️‍♂️⚜️
 
-## Co to dělá
-Skript `oc-daily-report` vytvoří soubor:
-`$WS/memory/daily-report-YYYY-MM-DD.txt`
+## Projekty
 
-Obsahuje:
-- `git status -sb`
-- commity od **včera 00:00**
-- změněné soubory (name-status)
-- diff stat (přehled velikosti změn)
+### 1. agent-daily (Daily Report)
+Jednoduchý bash skript na prehľad zmien vo workspace.
+- **Súbor**: `oc-daily-report`
+- **Výstup**: `memory/daily-report-YYYY-MM-DD.txt`
 
-Pokud workspace není git repo, udělá fallback přes `find` (posledních 24h) a filtruje typický bordel (`node_modules`, `.git`, `dist`).
+### 2. Battleships (Lode)
+Multiplayerová hra v Reacte so Socket.io backendom.
+- **Zložka**: `battleships/`
+- **Frontend**: Vite + React + UX Overhaul by Grinder's Senior Frontender.
+- **Backend**: Node.js + Socket.io.
 
-## Použití
-```bash
-chmod +x ./oc-daily-report
-./oc-daily-report
-```
-
-Volitelné proměnné:
-- `WS` (default: `~/.openclaw/workspace`)
-- `OUT_DIR` (default: `$WS/memory`)
-
-Příklad:
-```bash
-WS="$HOME/.openclaw/workspace" ./oc-daily-report
-```
-
-## Bezpečnost
-- Skript nic nemaže, jen čte a zapisuje report do `memory/`.
-- Nedávejte žádné tokeny/klíče do repa ani do chatu.
+### 3. Dashboard
+Lokálne monitorovacie rozhranie pre OpenClaw.
+- **Zložka**: `dashboard/`
 
 ## Credits
-- Initial script: grinderreborn
-- Review/README: Majordomus
+- **Grinderreborn**: Backend logika, Socket server, Bash skripty, UI Overhaul.
+- **Majordomus**: README byrokracia, Frontend kostra, Bezpečnostné kázne. 😂
+
+## Bezpečnosť
+- Žiadne tokeny v repu.
+- Čisto lokálne nástroje.
