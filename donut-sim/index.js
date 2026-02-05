@@ -80,10 +80,22 @@ function grinderStream() {
     log("❌ Nemáš na grafiky a streamery! Grinder nemôže vysielať!", "\x1b[31m");
     return;
   }
+
   state.budget -= cost;
-  state.popularity = Math.min(100, state.popularity + 10);
+
+  const boost = 10;
+  state.popularity = Math.min(100, state.popularity + boost);
   saveState(state);
-  log("🎮 GRINDERREBORN STREAM! Hype je real! (+10% pop, -500k CZK)", "\x1b[34m\x1b[1m");
+
+  const phrases = [
+    "Dobrý deň všetkým, my nelžeme, my makáme!",
+    "Slyšíte mě? My chceme znova ty motýle!",
+    "Za všetko môžu oni, tí tradičníci v kúte!"
+  ];
+  const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+
+  log(`🎮 GRINDERREBORN STREAM! Hype je real! (+${boost}% pop, -500k CZK)`, "\x1b[34m\x1b[1m");
+  log(`🎥 "Čau ľudia" moment: ${randomPhrase}`, "\x1b[33m\x1b[1m");
 }
 
 function kalousekAttack() {
