@@ -46,8 +46,9 @@ async function loadTail() {
 
 function initTailOptions() {
   const options = [
-    '/tmp/openclaw/',
-    '/tmp/openclaw/openclaw.log'
+    '/tmp/openclaw/openclaw.log',
+    '/home/parkos/.openclaw/workspace/memory/',
+    '/home/parkos/.openclaw/workspace/ai/'
   ];
 
   const list = $('tailPathList');
