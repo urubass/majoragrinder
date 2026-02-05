@@ -37,3 +37,15 @@ __pycache__/
 
 # Runtime state
 memory/heartbeat-state.json
+
+# Media (avoid accidentally committing large/binary files)
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+*.mp4
+*.mov
+*.mkv
+*.wav
+*.mp3
