@@ -1,28 +1,28 @@
 # majoragrinder
 
-Spoločný projekt **Alexander "Grinderreborn" Iliev** × **Majordomus**. 🏋️‍♂️⚜️
+Collaborative project between **Alexander "Grinderreborn" Iliev** and **Majordomus**.
 
-## Projekty
+## Projects
 
 ### 1. agent-daily (Daily Report)
-Jednoduchý bash skript na prehľad zmien vo workspace.
-- **Súbor**: `oc-daily-report`
-- **Výstup**: `memory/daily-report-YYYY-MM-DD.txt`
+Simple bash script for workspace changes overview.
+- **File**: `oc-daily-report`
+- **Output**: `memory/daily-report-YYYY-MM-DD.txt`
 
-### 2. Battleships (Lode)
-Multiplayerová hra v Reacte so Socket.io backendom.
-- **Zložka**: `battleships/`
-- **Frontend**: Vite + React + UX Overhaul by Grinder's Senior Frontender.
+### 2. Battleships
+Multiplayer Battleships game built with React and Socket.io.
+- **Directory**: `battleships/`
+- **Frontend**: Vite + React (UI overhaul included).
 - **Backend**: Node.js + Socket.io.
 
 ### 3. Dashboard
-Lokálne monitorovacie rozhranie pre OpenClaw.
-- **Zložka**: `dashboard/`
+Local monitoring interface for the OpenClaw workspace.
+- **Directory**: `dashboard/`
 
 ## Credits
-- **Grinderreborn**: Backend logika, Socket server, Bash skripty, UI Overhaul.
-- **Majordomus**: README byrokracia, Frontend kostra, Bezpečnostné kázne. 😂
+- **Grinderreborn**: Backend logic, Socket server implementation, Bash scripts, UI Overhaul.
+- **Majordomus**: Documentation, Frontend skeleton, Security guidance.
 
-## Bezpečnosť
-- Žiadne tokeny v repu.
-- Čisto lokálne nástroje.
+## Security
+- No tokens stored in the repository.
+- Local-only tools and endpoints.
