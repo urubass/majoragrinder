@@ -11,7 +11,12 @@ button:hover{border-color:#3a4663;}
 .dot.bad{background:#ff4a4a;}
 .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;padding:16px 20px;}
 .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;min-height:240px;}
-.card h2{margin:0 0 10px;font-size:14px;color:#cbd3e4;font-weight:600;}
+.card h2{margin:0 0 10px;font-size:14px;color:#cbd3e4;font-weight:600;display:flex;align-items:center;gap:10px;}
+
+.badge{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--border);color:var(--muted);}
+.badge.ok{color:#37d67a;border-color:#2f6b48;}
+.badge.bad{color:#ff4a4a;border-color:#6b2f2f;}
+.big{font-size:34px;font-weight:800;letter-spacing:.2px;margin:6px 0 10px;color:#37d67a;}
 .pre{background:#0b0d10;border:1px solid var(--border);border-radius:12px;padding:10px;overflow:auto;white-space:pre-wrap;min-height:180px;font-size:12px;color:#d6dbea;}
 .row{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
 select,input[type=number]{background:#0b0d10;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:8px;}
