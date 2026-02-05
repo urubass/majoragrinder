@@ -62,6 +62,34 @@ function initTailOptions() {
   }
 }
 
+async function refreshDotace() {
+  const elVal = $('dotaceCzk');
+  const elRaw = $('dotaceRaw');
+  const elBadge = $('dotaceVerified');
+
+  try {
+    const out = await j('/api/dotace');
+    const v = Number(out?.dotaceCzk);
+
+    if (Number.isFinite(v)) {
+      elVal.textContent = v.toLocaleString('cs-CZ') + ' CZK';
+      elBadge.textContent = out?.verified ? 'OVĚŘENO IMPÉRIEM' : 'NEOVĚŘENO';
+      elBadge.className = 'badge ' + (out?.verified ? 'ok' : 'bad');
+    } else {
+      elVal.textContent = '—';
+      elBadge.textContent = 'ERROR';
+      elBadge.className = 'badge bad';
+    }
+
+    elRaw.textContent = pretty(out);
+  } catch (e) {
+    elVal.textContent = '—';
+    elRaw.textContent = String(e);
+    elBadge.textContent = 'ERROR';
+    elBadge.className = 'badge bad';
+  }
+}
+
 async function refreshAll() {
   try {
     await refreshHealth();
@@ -69,6 +97,12 @@ async function refreshAll() {
     $('health').textContent = String(e);
     $('healthText').textContent = 'error';
     $('statusDot').className = 'dot bad';
+  }
+
+  try {
+    await refreshDotace();
+  } catch (e) {
+    // handled inside
   }
 
   try {
@@ -136,4 +170,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   initTailOptions();
   initTvAudio();
   await refreshAll();
+
+  // auto-refresh dotace every 5s
+  setInterval(() => {
+    refreshDotace().catch(() => {});
+  }, 5000);
 });

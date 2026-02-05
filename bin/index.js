@@ -71,6 +71,9 @@ if (!command) {
   console.log(`  ${GREEN}status${RESET}   - Show empire status (add --json for machine output)`);
   console.log(`  ${YELLOW}dotace${RESET}   - Calculate saved 'dotace' (add --json)`);
   console.log(`  ${MAGENTA}kampan${RESET}   - Auto-reply to campaign`);
+  console.log(`  ${CYAN}motyle${RESET}   - ASCII motýle (add --rare)`);
+  console.log(`  ${BLUE}news${RESET}     - Babiš & Grinder TV (CNN reportáž)`);
+  console.log(`  ${GREEN}live${RESET}     - TV live ticker (add --every 5)`);
 } else if (command === 'status') {
   showStatus({ json: args.includes('--json') });
 } else if (command === 'dotace') {
@@ -91,6 +94,12 @@ if (!command) {
   ];
   const reply = responses[Math.floor(Math.random() * responses.length)];
   console.log(`${RED}${BRIGHT}📣 ODPOVEĎ NA KRITIKU: "${reply}"${RESET}`);
+} else if (command === 'news') {
+  require('./news');
+} else if (command === 'live') {
+  require('./live');
+} else if (command === 'motyle') {
+  require('./motyle');
 } else {
   console.log(`${RED}Prikaz '${command}' nepoznám. Skús 'status'.${RESET}`);
 }

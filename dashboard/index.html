@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BABIŠ & GRINDER EMPIRE DASHBOARD</title>
+    <style>
+        :root {
+            --babis-zluta: #F4D03F; /* Řepková */
+            --babis-zelena: #2ECC71; /* Dotace */
+            --babis-cervena: #E74C3C; /* Makačka */
+            --babis-tmava: #1B1B1B; /* Dark mode */
+        }
+        body {
+            background-color: var(--babis-tmava);
+            color: white;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            color: var(--babis-zluta);
+            font-size: 3em;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 0px black;
+            border-bottom: 2px solid var(--babis-zluta);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background: #2C2C2C;
+            border: 2px solid var(--babis-zluta);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .green { color: var(--babis-zelena); }
+        .red { color: var(--babis-cervena); }
+        .yellow { color: var(--babis-zluta); }
+        
+        button {
+            background-color: var(--babis-cervena);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: transform 0.1s;
+        }
+        button:active { transform: scale(0.95); }
+        
+        #campaign-reply {
+            margin-top: 20px;
+            font-size: 1.5em;
+            font-style: italic;
+            color: var(--babis-zluta);
+            min-height: 1.5em;
+        }
+
+        .marquee {
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            box-sizing: border-box;
+            background: var(--babis-zluta);
+            color: black;
+            font-weight: bold;
+            padding: 5px 0;
+            margin-bottom: 20px;
+        }
+        .marquee span {
+            display: inline-block;
+            padding-left: 100%;
+            animation: marquee 15s linear infinite;
+        }
+        @keyframes marquee {
+            0%   { transform: translate(0, 0); }
+            100% { transform: translate(-100%, 0); }
+        }
+
+        /* BIG FINALE */
+        #finale {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 9999;
+        }
+        #finale pre {
+            color: var(--babis-zluta);
+            font-size: 18px;
+            line-height: 1.1;
+            text-align: center;
+            margin: 0;
+            white-space: pre;
+        }
+        #finale .subtitle {
+            margin-top: 12px;
+            color: var(--babis-zelena);
+            font-weight: bold;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="finale">
+        <pre>
+*  *   *  *   *   *  *   *
+  *   *   *  *   *   *  *
+*   *   *   *   *   *   *
+
+   \o/   \o/   \o/   \o/
+    |     |     |     |
+   / \   / \   / \   / \
+
+BABIŠ (ASCII FOTO) — 1 000 000 000+ DOTÁCIÍ
+( •_•)
+( •_•)>⌐■-■
+(⌐■_■)  "BUDE LÍP"
+
+*  *   *  *   *   *  *  *
+        </pre>
+        <div class="subtitle">KONFETY V TERMINÁLI AJ NA DASHBOARDE. TRADIČNÍCI PLAČÚ.</div>
+        <div style="margin-top:16px; opacity:0.7; font-size:14px;">(klikni kdekoľvek pre zavretie)</div>
+    </div>
+
+    <div class="marquee">
+        <span>📢 OZNÁMENÍ: ZA BABIŠE A GRINDERA BUDE LÍP! 📢 MORÁLKA NA 110%! 📢 MOTÝLE SE VRACÍ! 📢</span>
+    </div>
+
+    <h1>Babiš & Grinder Empire</h1>
+
+    <!-- ČÁPÍ HNÍZDO SYMBOL -->
+    <div style="font-size: 4em; margin-bottom: 20px;">
+        🦢 <span style="font-size: 0.5em; vertical-align: middle;">(symbol prosperity)</span> 🦢
+    </div>
+
+    <div class="container">
+        <!-- MORÁLKA -->
+        <div class="card">
+            <h3>Morálka Týmu</h3>
+            <div class="stat-value yellow">110%</div>
+            <p>Maximální nasazení</p>
+        </div>
+
+        <!-- DOTACE -->
+        <div class="card">
+            <h3>Získané Dotace (CZK)</h3>
+            <div class="stat-value green" id="dotace-counter">49,084,399</div>
+            <p>Cinká to!</p>
+        </div>
+
+        <!-- MAKAČKA -->
+        <div class="card">
+            <h3>Status</h3>
+            <div class="stat-value red">HARD WORK</div>
+            <p>Žádné flákání</p>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top: 20px; max-width: 600px; margin-left: auto; margin-right: auto;">
+        <h3>Kampaň Generátor</h3>
+        <p>Zaútočil na nás tradiční hejter? Klikni pro odpověď!</p>
+        <button onclick="generateReply()">Generovat Odpověď</button>
+        <div id="campaign-reply"></div>
+    </div>
+
+    <script>
+        // Dotace counter - stále stoupá
+        let dotace = 49084399;
+
+        function maybeFinale() {
+            if (dotace >= 1_000_000_000) {
+                const el = document.getElementById('finale');
+                if (el && el.style.display !== 'flex') {
+                    el.style.display = 'flex';
+                }
+            }
+        }
+
+        // kliknutie zavrie finále
+        document.addEventListener('click', (e) => {
+            const el = document.getElementById('finale');
+            if (el && el.style.display === 'flex') {
+                el.style.display = 'none';
+            }
+        });
+
+        setInterval(() => {
+            dotace += Math.floor(Math.random() * 1000);
+            document.getElementById('dotace-counter').innerText = dotace.toLocaleString();
+            maybeFinale();
+        }, 1000);
+
+        // Kampaň generátor
+        const replies = [
+            "To je účelovka!",
+            "Nikdy neodstúpim! Nech si to zapamätajú!",
+            "To je kampaň!",
+            "Ja som nič neukradol, to Kalousek!",
+            "My chceme znova motýle!",
+            "Sorry jako!",
+            "Všeci kradnú, iba ja čerpám!"
+        ];
+
+        function generateReply() {
+            const randomIndex = Math.floor(Math.random() * replies.length);
+            const reply = replies[randomIndex];
+            document.getElementById('campaign-reply').innerText = `"${reply}"`;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "babis-grinder-quiz",
+  "version": "1.0.0",
+  "description": "Super Kvíz o pravdě",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Andrej & Grinder",
+  "license": "ISC"
+}
