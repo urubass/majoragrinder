@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <title>Babiš × Grinder — Campaign Ops Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="bg" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="mark" aria-hidden="true">
+        <span class="mark__g"></span>
+        <span class="mark__y"></span>
+      </div>
+      <div class="brand__text">
+        <div class="brand__title">Babiš × Grinder</div>
+        <div class="brand__sub">Premium campaign intelligence dashboard (demo)</div>
+      </div>
+    </div>
+
+    <div class="topbar__right">
+      <div class="pill" title="Connection status">
+        <span class="dot" id="statusDot" aria-hidden="true"></span>
+        <span id="statusText">SIMULATED LIVE</span>
+      </div>
+      <button class="btn btn--ghost" id="btnCampaign" type="button">
+        <span class="btn__icon" aria-hidden="true">⚡</span>
+        Campaign moment
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="grid">
+      <article class="card card--kpi">
+        <div class="card__head">
+          <div>
+            <div class="card__label">Subsidy Counter</div>
+            <div class="card__value" id="subsidyValue">—</div>
+          </div>
+          <div class="chip chip--warn" id="subsidyChip">RUNNING</div>
+        </div>
+        <div class="card__meta">
+          <div class="meta">
+            <div class="meta__k">Rate</div>
+            <div class="meta__v" id="subsidyRate">—</div>
+          </div>
+          <div class="meta">
+            <div class="meta__k">Session</div>
+            <div class="meta__v" id="sessionId">—</div>
+          </div>
+          <div class="meta">
+            <div class="meta__k">Uptime</div>
+            <div class="meta__v" id="uptime">—</div>
+          </div>
+        </div>
+        <div class="card__actions">
+          <button class="btn btn--primary" id="btnBoost" type="button">Boost narrative</button>
+          <button class="btn btn--ghost" id="btnPause" type="button">Pause</button>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card__head">
+          <div>
+            <div class="card__label">Sentiment Pulse</div>
+            <div class="card__hint">Realtime line (placeholder canvas)</div>
+          </div>
+          <div class="chip chip--good" id="sentimentChip">+2.1%</div>
+        </div>
+        <div class="chart" role="img" aria-label="Sentiment pulse chart">
+          <canvas id="chartSentiment" width="920" height="280"></canvas>
+        </div>
+        <div class="legend">
+          <span class="legend__item"><span class="swatch swatch--y"></span> positive</span>
+          <span class="legend__item"><span class="swatch swatch--g"></span> momentum</span>
+          <span class="legend__item"><span class="swatch swatch--d"></span> baseline</span>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card__head">
+          <div>
+            <div class="card__label">Spend vs. Reach</div>
+            <div class="card__hint">Bars + sparkline (placeholder)</div>
+          </div>
+          <div class="chip chip--neutral" id="reachChip">CALIBRATING</div>
+        </div>
+        <div class="split">
+          <div class="chart chart--small" role="img" aria-label="Spend bars">
+            <canvas id="chartSpend" width="520" height="240"></canvas>
+          </div>
+          <div class="chart chart--small" role="img" aria-label="Reach sparkline">
+            <canvas id="chartReach" width="520" height="240"></canvas>
+          </div>
+        </div>
+        <div class="fineprint">
+          Hook these canvases to your websocket/REST stream. This demo animates synthetic data.
+        </div>
+      </article>
+
+      <article class="card card--wide">
+        <div class="card__head">
+          <div>
+            <div class="card__label">Ops Console</div>
+            <div class="card__hint">System events, alerts, and notes</div>
+          </div>
+          <div class="chip chip--outline" id="clock">—</div>
+        </div>
+        <div class="console" id="console" aria-live="polite"></div>
+      </article>
+
+      <article class="card">
+        <div class="card__head">
+          <div>
+            <div class="card__label">Quick Actions</div>
+            <div class="card__hint">Starter controls for real integrations</div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn btn--ghost" id="btnExport" type="button">Export snapshot</button>
+          <button class="btn btn--ghost" id="btnInject" type="button">Inject talking points</button>
+          <button class="btn btn--ghost" id="btnReset" type="button">Reset demo data</button>
+        </div>
+        <div class="fineprint">
+          Everything is vanilla JS/CSS. Replace the placeholder generators with production data sources.
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card__head">
+          <div>
+            <div class="card__label">Status</div>
+            <div class="card__hint">Theme: Yellow / Green / Dark</div>
+          </div>
+        </div>
+        <div class="status">
+          <div class="status__row">
+            <span class="status__k">Data feed</span>
+            <span class="status__v" id="feed">SIM</span>
+          </div>
+          <div class="status__row">
+            <span class="status__k">FPS</span>
+            <span class="status__v" id="fps">—</span>
+          </div>
+          <div class="status__row">
+            <span class="status__k">Theme vars</span>
+            <span class="status__v">OK</span>
+          </div>
+          <div class="status__row">
+            <span class="status__k">Build</span>
+            <span class="status__v" id="build">—</span>
+          </div>
+        </div>
+      </article>
+
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div>Demo UI — plug in real telemetry, polling, and auth.</div>
+    <div class="footer__right">© <span id="year"></span> Babiš × Grinder</div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
