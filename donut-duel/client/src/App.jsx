@@ -59,7 +59,7 @@ function App() {
     const handleKeyDown = (e) => {
       if (!myId) return;
 
-      const step = 10;
+      const step = 15;
       let { x, y } = playerPosRef.current;
 
       if (e.key === 'ArrowUp') y -= step;
@@ -68,8 +68,8 @@ function App() {
       if (e.key === 'ArrowRight') x += step;
 
       // Bound checking
-      x = Math.max(0, Math.min(arenaSize - 30, x));
-      y = Math.max(0, Math.min(arenaSize - 30, y));
+      x = Math.max(0, Math.min(arenaSize - 34, x));
+      y = Math.max(0, Math.min(arenaSize - 34, y));
 
       if (x !== playerPosRef.current.x || y !== playerPosRef.current.y) {
         playerPosRef.current = { x, y };
@@ -85,18 +85,28 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [myId, arenaSize]);
 
+  const myScore = myId && players[myId] ? players[myId].score : 0;
+
   return (
     <div className="game-container">
-      <div className="header">
-        <h1>Donut Duel</h1>
-        <div className="scoreboard">
-          {Object.values(players).map(p => (
-            <div key={p.id} className="score-item" style={{ color: p.color }}>
-              {p.id === myId ? 'You' : p.id.substr(0, 4)}: {p.score}
-            </div>
-          ))}
+      <div className="hud-glass">
+        <h1 className="title-neon">Donut Duel</h1>
+        <div className="stats-row">
+          <div className="stat-card">
+            <span>VAŠE KOBLIHY</span>
+            <span className="count-neon">{myScore}</span>
+          </div>
+          <div className="stat-card">
+            <span>DOTÁCIE</span>
+            <span className="status-neon">AKTÍVNE</span>
+          </div>
+          <div className="stat-card">
+            <span>SÚPERI</span>
+            <span className="status-neon">{Object.keys(players).length - 1}</span>
+          </div>
         </div>
       </div>
+
       <div className="arena" style={{ width: arenaSize, height: arenaSize }}>
         {donuts.map(donut => (
           <div
@@ -114,15 +124,21 @@ function App() {
             style={{
               left: player.x,
               top: player.y,
+              color: player.color, // used for currentColor box-shadow
               backgroundColor: player.color,
-              border: player.id === myId ? '3px solid white' : 'none'
+              border: player.id === myId ? '2px solid white' : 'none',
+              opacity: player.id === myId ? 1 : 0.8
             }}
           >
-            <div className="player-label">{player.id === myId ? 'YOU' : ''}</div>
+            <div className="player-label">
+              {player.id === myId ? 'VY' : 'SÚPER'}
+              {player.id !== myId && ` (${player.score})`}
+            </div>
           </div>
         ))}
       </div>
-      <div className="controls-hint">Use Arrow Keys to move</div>
+      
+      <div className="controls-hint">POUŽÍVAJTE ŠÍPKY NA POHYB</div>
     </div>
   );
 }
