@@ -1,18 +1,51 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useReducer, useState } from 'react';
 import { io } from 'socket.io-client';
 import './App.css';
 
 const SOCKET_URL = 'http://localhost:3001';
 
+const initialState = {
+  myId: null,
+  players: {},
+  donuts: [],
+  subsidies: [],
+  arenaSize: 800,
+  timeLeft: 60,
+  winner: null,
+  particles: []
+};
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'INIT':
+      return { ...state, ...action.payload };
+    case 'SET_MY_ID':
+      return { ...state, myId: action.payload };
+    case 'UPDATE_PLAYERS':
+      return { ...state, players: action.payload };
+    case 'UPDATE_PLAYER':
+      return { ...state, players: { ...state.players, [action.payload.id]: action.payload } };
+    case 'UPDATE_DONUTS':
+      return { ...state, donuts: action.payload };
+    case 'UPDATE_SUBSIDIES':
+      return { ...state, subsidies: action.payload };
+    case 'UPDATE_TIMER':
+      return { ...state, timeLeft: action.payload };
+    case 'GAME_OVER':
+      return { ...state, winner: action.payload };
+    case 'GAME_RESET':
+      return { ...initialState, myId: state.myId, players: action.payload.players, donuts: action.payload.donuts, arenaSize: action.payload.arenaSize };
+    case 'SPAWN_PARTICLES':
+      return { ...state, particles: [...state.particles, ...action.payload].slice(-50) };
+    case 'CLEAN_PARTICLES':
+      return { ...state, particles: state.particles.filter(p => p.life > 0) };
+    default:
+      return state;
+  }
+}
+
 function App() {
-  const [myId, setMyId] = useState(null);
-  const [players, setPlayers] = useState({});
-  const [donuts, setDonuts] = useState([]);
-  const [subsidies, setSubsidies] = useState([]);
-  const [arenaSize, setArenaSize] = useState(800);
-  const [timeLeft, setTimeLeft] = useState(60);
-  const [winner, setWinner] = useState(null);
-  
+  const [state, dispatch] = useReducer(reducer, initialState);
   const socketRef = useRef();
   const playerPosRef = useRef({ x: 0, y: 0 });
   const displayPlayersRef = useRef({});
@@ -22,71 +55,73 @@ function App() {
     socketRef.current = io(SOCKET_URL);
 
     socketRef.current.on('init', (data) => {
-      setMyId(data.id);
-      setPlayers(data.players);
+      dispatch({ type: 'INIT', payload: data });
       displayPlayersRef.current = JSON.parse(JSON.stringify(data.players));
-      setDonuts(data.donuts);
-      setSubsidies(data.subsidies || []);
-      setArenaSize(data.arenaSize);
-      setTimeLeft(data.timeLeft);
       playerPosRef.current = { x: data.players[data.id].x, y: data.players[data.id].y };
     });
 
-    socketRef.current.on('timerUpdate', (time) => setTimeLeft(time));
-    socketRef.current.on('gameOver', (data) => setWinner(data.winner));
+    socketRef.current.on('timerUpdate', (time) => dispatch({ type: 'UPDATE_TIMER', payload: time }));
+    socketRef.current.on('gameOver', (data) => dispatch({ type: 'GAME_OVER', payload: data.winner }));
     socketRef.current.on('gameReset', (data) => {
-      setPlayers(data.players);
-      displayPlayersRef.current = JSON.parse(JSON.stringify(data.players));
-      setDonuts(data.donuts);
-      setWinner(null);
-      setTimeLeft(60);
-      if (myId) playerPosRef.current = { x: data.players[myId].x, y: data.players[myId].y };
+      dispatch({ type: 'GAME_RESET', payload: data });
+      if (state.myId) playerPosRef.current = { x: data.players[state.myId].x, y: data.players[state.myId].y };
+    });
+
+    socketRef.current.on('scoreUpdate', ({ playerId, score }) => {
+      // Trigger particles at player position
+      const p = displayPlayersRef.current[playerId];
+      if (p) spawnParticles(p.x, p.y, '#ffd700');
+      
+      dispatch({ type: 'UPDATE_PLAYER', payload: { ...state.players[playerId], score } });
+    });
+
+    socketRef.current.on('subsidyEffect', ({ playerId, active }) => {
+      const p = displayPlayersRef.current[playerId];
+      if (p && active) spawnParticles(p.x, p.y, '#00f6ff');
+      dispatch({ type: 'UPDATE_PLAYER', payload: { ...state.players[playerId], subsidyActive: active } });
     });
 
     socketRef.current.on('newPlayer', (p) => {
-      setPlayers(prev => ({ ...prev, [p.id]: p }));
+      dispatch({ type: 'UPDATE_PLAYER', payload: p });
       displayPlayersRef.current[p.id] = p;
     });
 
     socketRef.current.on('playerMoved', (p) => {
-      setPlayers(prev => ({ ...prev, [p.id]: p }));
+      dispatch({ type: 'UPDATE_PLAYER', payload: p });
     });
 
-    socketRef.current.on('scoreUpdate', ({ playerId, score }) => {
-      setPlayers(prev => ({ ...prev, [playerId]: { ...prev[playerId], score } }));
-    });
-    socketRef.current.on('donutsUpdate', (d) => setDonuts(d));
-    socketRef.current.on('subsidiesUpdate', (s) => setSubsidies(s));
-    socketRef.current.on('subsidyEffect', ({ playerId, active }) => {
-      setPlayers(prev => ({ ...prev, [playerId]: { ...prev[playerId], subsidyActive: active } }));
-    });
-    socketRef.current.on('playerDisconnected', (id) => {
-      setPlayers(prev => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-      delete displayPlayersRef.current[id];
-    });
+    socketRef.current.on('donutsUpdate', (d) => dispatch({ type: 'UPDATE_DONUTS', payload: d }));
+    socketRef.current.on('subsidiesUpdate', (s) => dispatch({ type: 'UPDATE_SUBSIDIES', payload: s }));
 
     return () => socketRef.current.disconnect();
-  }, [myId]);
+  }, [state.myId]);
 
-  // Interpolation loop for "Buttery Smooth" movement
+  const spawnParticles = (x, y, color) => {
+    const newParticles = Array.from({ length: 10 }).map(() => ({
+      id: Math.random(),
+      x,
+      y,
+      vx: (Math.random() - 0.5) * 10,
+      vy: (Math.random() - 0.5) * 10,
+      life: 1.0,
+      color
+    }));
+    dispatch({ type: 'SPAWN_PARTICLES', payload: newParticles });
+  };
+
   const animate = () => {
     const lerp = (start, end, amt) => (1 - amt) * start + amt * end;
     const lerpAmt = 0.25;
 
-    Object.keys(players).forEach(id => {
+    Object.keys(state.players).forEach(id => {
       if (displayPlayersRef.current[id]) {
-        displayPlayersRef.current[id].x = lerp(displayPlayersRef.current[id].x, players[id].x, lerpAmt);
-        displayPlayersRef.current[id].y = lerp(displayPlayersRef.current[id].y, players[id].y, lerpAmt);
-        displayPlayersRef.current[id].score = players[id].score;
-        displayPlayersRef.current[id].subsidyActive = players[id].subsidyActive;
+        displayPlayersRef.current[id].x = lerp(displayPlayersRef.current[id].x, state.players[id].x, lerpAmt);
+        displayPlayersRef.current[id].y = lerp(displayPlayersRef.current[id].y, state.players[id].y, lerpAmt);
+        displayPlayersRef.current[id].score = state.players[id].score;
+        displayPlayersRef.current[id].subsidyActive = state.players[id].subsidyActive;
       }
     });
     
-    // Force re-render of avatars only
     const avatars = document.querySelectorAll('.player');
     avatars.forEach(avatar => {
       const id = avatar.getAttribute('data-id');
@@ -105,39 +140,38 @@ function App() {
   useEffect(() => {
     requestRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(requestRef.current);
-  }, [players]);
+  }, [state.players]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (!myId || winner) return;
-      const p = players[myId];
+      if (!state.myId || state.winner) return;
+      const p = state.players[state.myId];
       const step = p && p.subsidyActive ? 25 : 15;
       let { x, y } = playerPosRef.current;
       if (e.key === 'ArrowUp') y -= step;
       if (e.key === 'ArrowDown') y += step;
       if (e.key === 'ArrowLeft') x -= step;
       if (e.key === 'ArrowRight') x += step;
-      x = Math.max(0, Math.min(arenaSize - 34, x));
-      y = Math.max(0, Math.min(arenaSize - 34, y));
+      x = Math.max(0, Math.min(state.arenaSize - 34, x));
+      y = Math.max(0, Math.min(state.arenaSize - 34, y));
       if (x !== playerPosRef.current.x || y !== playerPosRef.current.y) {
         playerPosRef.current = { x, y };
-        setPlayers(prev => ({ ...prev, [myId]: { ...prev[myId], x, y } }));
         socketRef.current.emit('move', { x, y });
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [myId, arenaSize, players, winner]);
+  }, [state.myId, state.arenaSize, state.players, state.winner]);
 
-  const myPlayer = myId ? players[myId] : null;
-  const isCrisis = donuts.length < 3;
+  const myPlayer = state.myId ? state.players[state.myId] : null;
+  const isCrisis = state.donuts.length < 3;
 
   return (
     <div className="game-container">
-      {winner && (
+      {state.winner && (
         <div className="winner-modal">
           <div className="winner-title">VÍTĚZNÝ ÚNOR</div>
-          <div className="winner-name">DOTAČNÝ KRÁĽ: {winner.id === myId ? 'VY' : 'SÚPER'} ({winner.score} koblih)</div>
+          <div className="winner-name">DOTAČNÝ KRÁĽ: {state.winner.id === state.myId ? 'VY' : 'SÚPER'} ({state.winner.score} koblih)</div>
           <div className="bude-lip">BUDE LÍP!</div>
           <button className="btn-restart" onClick={() => socketRef.current.emit('requestReset')}>NOVÁ KAMPÁŇ</button>
         </div>
@@ -148,7 +182,7 @@ function App() {
         <div className="stats-row">
           <div className="stat-card">
             <span>ČAS</span>
-            <span className="count-neon">{timeLeft}s</span>
+            <span className="count-neon">{state.timeLeft}s</span>
           </div>
           <div className="stat-card">
             <span>VAŠE KOBLIHY</span>
@@ -163,14 +197,24 @@ function App() {
         </div>
       </div>
 
-      <div className={`arena ${isCrisis ? 'crisis' : ''}`} style={{ width: arenaSize, height: arenaSize }}>
+      <div className={`arena ${isCrisis ? 'crisis' : ''}`} style={{ width: state.arenaSize, height: state.arenaSize }}>
         {isCrisis && <div className="campaign-alert">KAMPÁŇ!</div>}
-        {donuts.map(d => <div key={d.id} className="donut" style={{ left: d.x, top: d.y }}>🍩</div>)}
-        {subsidies.map(s => <div key={s.id} className="subsidy-packet" style={{ left: s.x, top: s.y }}>💰</div>)}
-        {Object.values(players).map(p => (
+        {state.donuts.map(d => <div key={d.id} className="donut" style={{ left: d.x, top: d.y }}>🍩</div>)}
+        {state.subsidies.map(s => <div key={s.id} className="subsidy-packet" style={{ left: s.x, top: s.y }}>💰</div>)}
+        
+        {state.particles.map(p => (
+          <div key={p.id} className="particle" style={{ 
+            left: p.x, 
+            top: p.y, 
+            backgroundColor: p.color,
+            boxShadow: `0 0 5px ${p.color}`
+          }} />
+        ))}
+
+        {Object.values(state.players).map(p => (
           <div key={p.id} data-id={p.id} className="player"
-            style={{ backgroundColor: p.color, color: p.color, border: p.id === myId ? '2px solid white' : 'none' }}>
-            <div className="player-label">{p.id === myId ? 'VY' : 'SÚPER'} ({p.score})</div>
+            style={{ backgroundColor: p.color, color: p.color, border: p.id === state.myId ? '2px solid white' : 'none' }}>
+            <div className="player-label">{p.id === state.myId ? 'VY' : 'SÚPER'} ({p.score})</div>
           </div>
         ))}
       </div>
