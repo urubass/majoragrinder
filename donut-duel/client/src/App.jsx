@@ -63,6 +63,24 @@ const Leaderboard = ({ players, myId }) => {
   );
 };
 
+const Shop = ({ score, onBuy, disabled }) => {
+  return (
+    <div className="shop-glass">
+      <h2 className="neon-text">Dotačný Shop</h2>
+      <div style={{ fontSize: '0.9rem', color: '#aaa', marginBottom: '10px' }}>
+        Kúpiť certifikát (20 🍩)
+      </div>
+      <button 
+        className="btn-premium-shop" 
+        onClick={onBuy}
+        disabled={disabled || score < 20}
+      >
+        AKTIVOVAŤ BOOST
+      </button>
+    </div>
+  );
+};
+
 function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const socketRef = useRef();
@@ -240,6 +258,15 @@ function App() {
       </div>
 
       <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <Leaderboard players={state.players} myId={state.myId} />
+          <Shop 
+            score={myPlayer?.score || 0} 
+            disabled={myPlayer?.subsidyActive}
+            onBuy={() => socketRef.current.emit('buyCertificate')}
+          />
+        </div>
+
         <div className={`arena ${isCrisis ? 'crisis' : ''}`} style={{ width: state.arenaSize, height: state.arenaSize }}>
           {isCrisis && <div className="campaign-alert">KAMPÁŇ!</div>}
           {state.donuts.map(d => <div key={d.id} className="donut" style={{ left: d.x, top: d.y }}>🍩</div>)}
@@ -263,8 +290,6 @@ function App() {
             </div>
           ))}
         </div>
-        
-        <Leaderboard players={state.players} myId={state.myId} />
       </div>
 
       <div className="controls-hint">POUŽÍVAJTE ŠÍPKY NA POHYB</div>

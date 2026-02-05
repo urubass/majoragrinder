@@ -315,6 +315,45 @@ body {
   text-shadow: 0 0 10px var(--neon-dotace);
 }
 
+/* Shop Panel Glass Design */
+.shop-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--blur-amount));
+  border: 1px solid var(--glass-border);
+  border-radius: 15px;
+  padding: 15px;
+  margin-top: 20px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.btn-premium-shop {
+  background: linear-gradient(45deg, var(--neon-dotace), #00aaff);
+  border: none;
+  color: #000;
+  padding: 10px 20px;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 10px;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+
+.btn-premium-shop:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px var(--neon-dotace);
+}
+
+.btn-premium-shop:disabled {
+  background: #333;
+  color: #666;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .controls-hint {
   margin-top: 30px;
   font-size: 0.9rem;
