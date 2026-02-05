@@ -149,13 +149,13 @@ function App() {
   };
 
   const spawnChatParticles = (x, y, msg) => {
-    let emoji = '💬';
-    if (msg.includes('kampaň')) emoji = '❗';
+    let emoji = '🍩';
+    if (msg.includes('kampaň')) emoji = '‼️';
     if (msg.includes('líp')) emoji = '❤️';
     if (msg.includes('kradnú')) emoji = '⛓️';
     if (msg.includes('schválena')) emoji = '💰';
     
-    const p = Array.from({ length: 5 }).map(() => ({ id: Math.random(), type: 'emoji', emoji, x, y, tx: (Math.random()-0.5)*200, ty: (Math.random()-0.5)*200 }));
+    const p = Array.from({ length: 6 }).map(() => ({ id: Math.random(), type: 'emoji', emoji, x, y, tx: (Math.random()-0.5)*200, ty: (Math.random()-0.5)*200 }));
     dispatch({ type: 'SPAWN_PARTICLES', payload: p });
   };
 
