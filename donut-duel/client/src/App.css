@@ -525,6 +525,39 @@ body {
   animation: pulse 0.5s infinite alternate;
 }
 
+/* Analytics Dashboard */
+.analytics-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--blur-amount));
+  border: 1px solid var(--glass-border);
+  border-radius: 15px;
+  padding: 15px;
+  margin-top: 20px;
+  width: 100%;
+  max-width: 400px;
+  height: 200px;
+  position: relative;
+}
+
+.analytics-chart {
+  width: 100%;
+  height: 100px;
+  stroke: var(--neon-dotace);
+  stroke-width: 2;
+  fill: none;
+  filter: drop-shadow(0 0 5px var(--neon-dotace));
+}
+
+.analytics-growth {
+  animation: green-flash 0.5s infinite;
+}
+
+@keyframes green-flash {
+  0% { box-shadow: inset 0 0 20px rgba(0, 255, 0, 0); }
+  50% { box-shadow: inset 0 0 50px rgba(0, 255, 0, 0.4); }
+  100% { box-shadow: inset 0 0 20px rgba(0, 255, 0, 0); }
+}
+
 .controls-hint {
   margin-top: 30px;
   font-size: 0.9rem;
