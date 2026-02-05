@@ -78,10 +78,62 @@ async function refreshAll() {
   }
 }
 
+function initTvAudio() {
+  const playlist = [
+    { src: '/audio/segments/seg01.mp3', text: 'INTRO: Babiš & Grinder TV' },
+    { src: '/audio/segments/seg02.mp3', text: 'SLIB #1: Dálnice' },
+    { src: '/audio/segments/seg03.mp3', text: 'SLIB #2: Máslo' },
+    { src: '/audio/segments/seg04.mp3', text: 'SLIB #3: Motýle' },
+    { src: '/audio/segments/seg05.mp3', text: 'OUTRO: Nikdy neodstoupím' },
+  ];
+
+  const audio = $('tvAudio');
+  const state = $('tvState');
+  const line = $('tvLine');
+
+  let idx = 0;
+
+  function setState(ok, label) {
+    state.textContent = label;
+    state.className = 'badge ' + (ok ? 'ok' : 'bad');
+  }
+
+  function playIndex(i) {
+    idx = i;
+    if (idx >= playlist.length) {
+      line.textContent = '—';
+      setState(true, 'done');
+      return;
+    }
+    const item = playlist[idx];
+    line.textContent = item.text;
+    audio.src = item.src;
+    audio.currentTime = 0;
+    audio.play().catch((e) => {
+      setState(false, 'audio error');
+      console.error(e);
+    });
+    setState(true, `playing ${idx + 1}/${playlist.length}`);
+  }
+
+  audio.addEventListener('ended', () => playIndex(idx + 1));
+
+  $('tvPlay').addEventListener('click', () => playIndex(0));
+  $('tvStop').addEventListener('click', () => {
+    audio.pause();
+    audio.currentTime = 0;
+    line.textContent = '—';
+    setState(true, 'stopped');
+  });
+
+  setState(true, 'idle');
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   $('refreshBtn').addEventListener('click', refreshAll);
   $('tailBtn').addEventListener('click', loadTail);
 
   initTailOptions();
+  initTvAudio();
   await refreshAll();
 });
