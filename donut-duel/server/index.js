@@ -16,41 +16,88 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 3001;
 
-// Game State
-let players = {};
-let donuts = [];
-let subsidies = [];
+// Configuration
 const ARENA_SIZE = 800;
 const DONUT_COUNT = 10;
 const SUBSIDY_CHANCE = 0.05;
+const GAME_DURATION = 60; // seconds
 
-function spawnDonuts() {
-  while (donuts.length < DONUT_COUNT) {
-    donuts.push({
-      id: Math.random().toString(36).substr(2, 9),
-      x: Math.random() * (ARENA_SIZE - 24),
-      y: Math.random() * (ARENA_SIZE - 24),
-    });
+// Game State Class for Clean Code
+class GameEngine {
+  constructor() {
+    this.players = {};
+    this.donuts = [];
+    this.subsidies = [];
+    this.timeLeft = GAME_DURATION;
+    this.gameActive = false;
+    this.timerInterval = null;
+    this.spawnDonuts();
+  }
+
+  spawnDonuts() {
+    while (this.donuts.length < DONUT_COUNT) {
+      this.donuts.push({
+        id: Math.random().toString(36).substr(2, 9),
+        x: Math.random() * (ARENA_SIZE - 24),
+        y: Math.random() * (ARENA_SIZE - 24),
+      });
+    }
+  }
+
+  spawnSubsidy() {
+    if (this.subsidies.length < 2 && Math.random() < SUBSIDY_CHANCE) {
+      this.subsidies.push({
+        id: Math.random().toString(36).substr(2, 9),
+        x: Math.random() * (ARENA_SIZE - 30),
+        y: Math.random() * (ARENA_SIZE - 30),
+      });
+      io.emit('subsidiesUpdate', this.subsidies);
+    }
+  }
+
+  startGame() {
+    if (this.gameActive) return;
+    this.gameActive = true;
+    this.timeLeft = GAME_DURATION;
+    this.timerInterval = setInterval(() => {
+      this.timeLeft--;
+      io.emit('timerUpdate', this.timeLeft);
+      if (this.timeLeft <= 0) {
+        this.endGame();
+      }
+    }, 1000);
+  }
+
+  endGame() {
+    this.gameActive = false;
+    clearInterval(this.timerInterval);
+    const winner = this.getWinner();
+    io.emit('gameOver', { winner });
+  }
+
+  getWinner() {
+    const playerList = Object.values(this.players);
+    if (playerList.length === 0) return null;
+    return playerList.reduce((prev, current) => (prev.score > current.score) ? prev : current);
+  }
+
+  resetGame() {
+    this.timeLeft = GAME_DURATION;
+    Object.values(this.players).forEach(p => p.score = 0);
+    this.donuts = [];
+    this.subsidies = [];
+    this.spawnDonuts();
+    io.emit('gameReset', { players: this.players, donuts: this.donuts, arenaSize: ARENA_SIZE });
+    this.startGame();
   }
 }
 
-function spawnSubsidy() {
-  if (subsidies.length < 2 && Math.random() < SUBSIDY_CHANCE) {
-    subsidies.push({
-      id: Math.random().toString(36).substr(2, 9),
-      x: Math.random() * (ARENA_SIZE - 30),
-      y: Math.random() * (ARENA_SIZE - 30),
-    });
-    io.emit('subsidiesUpdate', subsidies);
-  }
-}
-
-spawnDonuts();
+const game = new GameEngine();
 
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`);
 
-  players[socket.id] = {
+  game.players[socket.id] = {
     id: socket.id,
     x: Math.random() * (ARENA_SIZE - 50),
     y: Math.random() * (ARENA_SIZE - 50),
@@ -59,42 +106,56 @@ io.on('connection', (socket) => {
     color: `hsl(${Math.random() * 360}, 70%, 50%)`
   };
 
-  socket.emit('init', { id: socket.id, players, donuts, subsidies, arenaSize: ARENA_SIZE });
-  socket.broadcast.emit('newPlayer', players[socket.id]);
+  if (!game.gameActive && Object.keys(game.players).length >= 1) {
+    game.startGame();
+  }
+
+  socket.emit('init', { 
+    id: socket.id, 
+    players: game.players, 
+    donuts: game.donuts, 
+    subsidies: game.subsidies, 
+    arenaSize: ARENA_SIZE,
+    timeLeft: game.timeLeft,
+    gameActive: game.gameActive
+  });
+
+  socket.broadcast.emit('newPlayer', game.players[socket.id]);
 
   socket.on('move', (data) => {
-    if (players[socket.id]) {
-      players[socket.id].x = data.x;
-      players[socket.id].y = data.y;
+    if (!game.gameActive) return;
+    const player = game.players[socket.id];
+    if (player) {
+      player.x = data.x;
+      player.y = data.y;
       
-      // Check for donut collision
-      donuts = donuts.filter(donut => {
-        const dx = players[socket.id].x - donut.x;
-        const dy = players[socket.id].y - donut.y;
+      // Donut collision
+      game.donuts = game.donuts.filter(donut => {
+        const dx = player.x - donut.x;
+        const dy = player.y - donut.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
         if (distance < 30) {
-          players[socket.id].score += 1;
-          io.emit('scoreUpdate', { playerId: socket.id, score: players[socket.id].score });
+          player.score += 1;
+          io.emit('scoreUpdate', { playerId: socket.id, score: player.score });
           return false;
         }
         return true;
       });
 
-      // Check for subsidy collision
-      subsidies = subsidies.filter(sub => {
-        const dx = players[socket.id].x - sub.x;
-        const dy = players[socket.id].y - sub.y;
+      // Subsidy collision
+      game.subsidies = game.subsidies.filter(sub => {
+        const dx = player.x - sub.x;
+        const dy = player.y - sub.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
         if (distance < 35) {
-          players[socket.id].subsidyActive = true;
+          player.subsidyActive = true;
           io.emit('subsidyEffect', { playerId: socket.id, active: true });
           
-          // Disable after 5 seconds
           setTimeout(() => {
-            if (players[socket.id]) {
-              players[socket.id].subsidyActive = false;
+            if (game.players[socket.id]) {
+              game.players[socket.id].subsidyActive = false;
               io.emit('subsidyEffect', { playerId: socket.id, active: false });
             }
           }, 5000);
@@ -104,21 +165,28 @@ io.on('connection', (socket) => {
         return true;
       });
 
-      if (donuts.length < DONUT_COUNT) {
-        spawnDonuts();
-        io.emit('donutsUpdate', donuts);
+      if (game.donuts.length < DONUT_COUNT) {
+        game.spawnDonuts();
+        io.emit('donutsUpdate', game.donuts);
       }
       
-      spawnSubsidy();
-
-      socket.broadcast.emit('playerMoved', players[socket.id]);
+      game.spawnSubsidy();
+      socket.broadcast.emit('playerMoved', player);
     }
+  });
+
+  socket.on('requestReset', () => {
+    game.resetGame();
   });
 
   socket.on('disconnect', () => {
     console.log(`User disconnected: ${socket.id}`);
-    delete players[socket.id];
+    delete game.players[socket.id];
     io.emit('playerDisconnected', socket.id);
+    if (Object.keys(game.players).length === 0) {
+      game.gameActive = false;
+      clearInterval(game.timerInterval);
+    }
   });
 });
 

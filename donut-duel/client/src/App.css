@@ -187,6 +187,59 @@ body {
   animation: text-flash 0.5s infinite;
 }
 
+/* Winner Modal */
+.winner-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+
+.winner-title {
+  font-size: 5rem;
+  font-weight: 900;
+  color: var(--neon-dotace);
+  text-shadow: 0 0 30px var(--neon-dotace);
+  margin-bottom: 10px;
+}
+
+.winner-name {
+  font-size: 3rem;
+  color: #fff;
+  margin-bottom: 30px;
+}
+
+.bude-lip {
+  font-size: 4rem;
+  color: var(--neon-donut);
+  text-shadow: 0 0 20px var(--neon-donut);
+  font-weight: bold;
+  letter-spacing: 5px;
+  animation: pulse 1s infinite alternate;
+}
+
+.btn-restart {
+  margin-top: 40px;
+  background: transparent;
+  border: 2px solid #fff;
+  color: #fff;
+  padding: 15px 40px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  border-radius: 50px;
+  transition: all 0.3s;
+}
+
+.btn-restart:hover {
+  background: #fff;
+  color: #000;
+}
+
 .controls-hint {
   margin-top: 30px;
   font-size: 0.9rem;
