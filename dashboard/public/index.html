@@ -23,10 +23,14 @@
   </section>
 
   <section class="card">
-    <h2>Dotace <span id="dotaceVerified" class="badge">loading…</span></h2>
-    <div class="big" id="dotaceCzk">—</div>
-    <pre id="dotaceRaw" class="pre"></pre>
-    <p class="hint">Číslo je z `node bin/index.js dotace --json` (server-side).</p>
+    <h2>Babiš & Grinder TV (Audio) <span id="tvState" class="badge">idle</span></h2>
+    <div class="row">
+      <button id="tvPlay" type="button">Play</button>
+      <button id="tvStop" type="button">Stop</button>
+    </div>
+    <div class="big" id="tvLine">—</div>
+    <audio id="tvAudio" preload="auto"></audio>
+    <p class="hint">Prehrá sa 5 segmentov podľa pauz v MP3 (intro / sľuby / outro).</p>
   </section>
 
   <section class="card">
