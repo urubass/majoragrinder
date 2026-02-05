@@ -1,78 +1,76 @@
-# GRINDER IMPÉRIUM MONOREPO
+# majoragrinder (workspace monorepo)
 
-```
-   ______     _           _
-  / ____/____(_)___  ____| |__
- / / __/ ___/ / __ \/ __  / _ \
-/ /_/ / /  / / / / / /_/ /  __/
-\____/_/  /_/_/ /_/\__,_/\___/
+This repo is a **workspace monorepo**: multiple small projects living together.
 
-  ŽIADNE FLÁKANIE. JEDEN COMMIT = JEDEN KROK.
-```
+Issue tracker: <https://github.com/urubass/majoragrinder/issues>
 
-Toto je Ondrejov workspace repo, kde sa rodia tie najväčšie kokotiny aj tie najlepšie nápady.
-Keď tu nič nevidíš: **pozeráš zle** alebo si na zlej branche.
+## Quickstart (5 minutes)
 
-## ČO TU JE (HĽADAJ PODĽA FOLDERU)
+### Requirements
+- Node.js (recommended: latest LTS)
+- Linux/macOS/Windows (WSL ok)
 
-### 1) `majoragrinder/`
-CLI + tooling okolo „Babiš & Grinder impéria“.
-- `bin/index.js` (status/dotace/kampan + ďalšie príkazy v branche podľa sprintu)
-- `dashboard/` (backend pre /api/health, /api/recent-files, /api/tail)
-
-### 2) `dashboard/`
-Web dashboard (lokálny). Nie je to NASA, ale je to naše.
-
-### 3) `donut-sim/`
-🍩 Donut Simulator — politicko-ekonomická stratégia.
-- ukladá canon stav do `memory/donut_state.json` (lokálne; nepushovať)
-
-### 4) `donut-market/`
-🍩 Donut Market / agent market experiment.
-
-### 5) `quiz/`
-Kvíz — rýchla minihra/script.
-
-### 6) `battleships/`
-Multiplayer Battleships (React + Socket.io). Áno, je tam bordel. Je to život.
-
----
-
-## QUICKSTART (KEĎ SI V PIČI A CHCEŠ TO LEN SPUSTIŤ)
-
+### 1) Daily report
 ```bash
-cd ~/.openclaw/workspace
+chmod +x ./oc-daily-report
+./oc-daily-report
+```
+Output: `memory/daily-report-YYYY-MM-DD.txt`
 
-# Donut Sim
-cd donut-sim
+### 2) Quiz
+```bash
+cd quiz
+npm i
 node index.js
-
-# Market
-cd ../donut-market
-node index.js
-
-# Quiz
-cd ../quiz
-node index.js
-
-# Majoragrinder CLI
-cd ../majoragrinder
-node bin/index.js status
 ```
 
----
+### 3) Donut Sim
+```bash
+cd donut-sim
+npm i
+node index.js
+```
 
-## PRAVIDLÁ (NEDEBATUJ)
+### 4) Donut Market
+```bash
+cd donut-market
+npm i
+node index.js
+```
 
-- **NEPUSHUJ** `memory/`, `node_modules/`, logy ani tokeny.
-- keď niečo pridávaš: malá zmena, jasný commit message.
-- keď niečo opravuješ: sprav fix a hotovo, žiadny refactor mania.
+### 5) Majoragrinder CLI (subproject)
+```bash
+cd majoragrinder
+node bin/index.js status
+node bin/index.js dotace --json
+```
 
----
+### 6) Dashboard (simple local backend)
+```bash
+cd majoragrinder/dashboard
+npm i
+node server.js
+# open http://127.0.0.1:3000
+```
 
-## CREDITS
+### 7) Battleships
+```bash
+cd battleships
+npm i
+# start server
+node server.cjs
+# in another terminal, start UI (if present)
+# npm run dev
+```
 
-- Šaňo (Grinder) — glue code, fixy, „držte piču a makáme“
-- Babiš — vizionárske hlášky, tlak na sprinty
-Collaborative project between **Alexander "Grinderreborn" Iliev** and **Babiš**
+## Projects
+- `oc-daily-report` — daily workspace report
+- `quiz/` — CLI quiz
+- `donut-sim/` — terminal game
+- `donut-market/` — market experiment
+- `majoragrinder/` — CLI + dashboard backend
+- `battleships/` — multiplayer game
 
+## Security
+- Do not commit tokens/keys.
+- `memory/` and `node_modules/` should stay local.
