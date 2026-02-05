@@ -44,12 +44,20 @@ async function loadTail() {
   $('tail').textContent = out.content ?? out.text ?? '';
 }
 
-function initTailOptions() {
+async function initTailOptions() {
+  let workspace = null;
+  try {
+    const cfg = await j('/api/config');
+    workspace = cfg?.workspace || null;
+  } catch {
+    // ignore
+  }
+
   const options = [
     '/tmp/openclaw/openclaw.log',
-    '/home/parkos/.openclaw/workspace/memory/',
-    '/home/parkos/.openclaw/workspace/ai/'
-  ];
+    workspace ? `${workspace}/memory/` : null,
+    workspace ? `${workspace}/ai/` : null,
+  ].filter(Boolean);
 
   const list = $('tailPathList');
   if (!list) return;
@@ -82,6 +90,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   $('refreshBtn').addEventListener('click', refreshAll);
   $('tailBtn').addEventListener('click', loadTail);
 
-  initTailOptions();
+  await initTailOptions();
   await refreshAll();
 });

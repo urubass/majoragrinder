@@ -24,6 +24,14 @@ function isPathUnderDir(filePath, allowedDir) {
 
 app.use(express.static('public'));
 
+// Config endpoint for frontend (no secrets)
+app.get('/api/config', (req, res) => {
+  res.json({
+    workspace: WORKSPACE,
+    allowedDirs: ALLOWED_DIRS,
+  });
+});
+
 // 1. Health endpoint - Gateway status
 app.get('/api/health', (req, res) => {
   exec('openclaw gateway status', (error, stdout, stderr) => {
