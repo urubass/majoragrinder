@@ -10,7 +10,8 @@ const WORKSPACE = process.env.WORKSPACE || path.join(process.env.HOME, '.opencla
 // Allowed paths for tailing
 const ALLOWED_DIRS = [
   '/tmp/openclaw',
-  path.join(WORKSPACE, 'memory')
+  path.join(WORKSPACE, 'memory'),
+  path.join(WORKSPACE, 'ai')
 ];
 
 function isPathUnderDir(filePath, allowedDir) {
