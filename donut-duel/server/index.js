@@ -63,9 +63,7 @@ class GameEngine {
     this.eventInterval = setInterval(() => this.triggerRandomEvent(), 20000);
   }
 
-  triggerRandomEvent() {
-    const events = ['AUDIT', 'EET_BONUS', 'CERPANI'];
-    const selected = events[Math.floor(Math.random() * events.length)];
+  triggerEvent(selected) {
     this.currentEvent = selected;
     let duration = 5000;
     let eventData = { name: selected, duration };
@@ -87,6 +85,12 @@ class GameEngine {
       io.emit('eventStart', eventData);
       setTimeout(() => this.clearEvent(), 5000);
     }
+  }
+
+  triggerRandomEvent() {
+    const events = ['AUDIT', 'EET_BONUS', 'CERPANI'];
+    const selected = events[Math.floor(Math.random() * events.length)];
+    this.triggerEvent(selected);
   }
 
   clearEvent() {
@@ -213,6 +217,20 @@ io.on('connection', (socket) => {
       setTimeout(() => { if (game.players[playerId]) { game.players[playerId].subsidyActive = false; io.emit('subsidyEffect', { playerId, active: false }); } }, duration);
     }
   }
+
+  socket.on('adminEvent', (type) => {
+    const allowAdmin = process.env.ENABLE_ADMIN === '1' || process.env.NODE_ENV !== 'production';
+    if (!allowAdmin) return;
+
+    if (type === 'RESPAWN_DONUTS') {
+      game.spawnDonuts();
+      io.emit('donutsUpdate', game.donuts);
+      return;
+    }
+
+    if (!['AUDIT', 'EET_BONUS', 'CERPANI'].includes(type)) return;
+    game.triggerEvent(type);
+  });
 
   socket.on('requestReset', () => game.resetGame());
   socket.on('disconnect', () => { delete game.players[socket.id]; io.emit('playerDisconnected', socket.id); });
