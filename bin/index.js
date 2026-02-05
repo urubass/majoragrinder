@@ -40,8 +40,24 @@ if (!command) {
   console.log("Použitie: grinder <command>");
   console.log("Commands:");
   console.log("  status   - Show empire status");
+  console.log("  dotace   - Calculate saved 'dotace'");
+  console.log("  kampan   - Auto-reply to campaign");
 } else if (command === 'status') {
   showStatus();
+} else if (command === 'dotace') {
+  const amount = Math.floor(Math.random() * 50000000) + 1000000;
+  console.log(`💰 DOTACE SECURED: ${amount.toLocaleString()} CZK`);
+  console.log("   (Samozřejmě legálně a podle pravidel EU)");
+} else if (command === 'kampan') {
+  const responses = [
+    "To je účelovka!",
+    "Nikdy neodstúpim! Nech si to zapamätajú!",
+    "To je kampaň!",
+    "Ja som nič neukradol, to Kalousek!",
+    "My chceme znova motýle!"
+  ];
+  const reply = responses[Math.floor(Math.random() * responses.length)];
+  console.log(`📣 ODPOVEĎ NA KRITIKU: "${reply}"`);
 } else {
   console.log(`Prikaz '${command}' nepoznám. Skús 'status'.`);
 }
