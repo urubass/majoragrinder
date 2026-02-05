@@ -47,7 +47,23 @@ app.get('/api/recent-files', (req, res) => {
   });
 });
 
-// 3. Tail endpoint with allowlist
+// 3. Dotace endpoint (reads CLI output)
+app.get('/api/dotace', (req, res) => {
+  const cmd = `node "${path.join(__dirname, '../bin/index.js')}" dotace --json`;
+  exec(cmd, { cwd: path.join(__dirname, '..') }, (error, stdout, stderr) => {
+    if (error) {
+      return res.status(500).json({ status: 'error', message: error.message, stderr: String(stderr || '') });
+    }
+    try {
+      const obj = JSON.parse(String(stdout || '{}'));
+      res.json({ verified: true, source: 'cli', ...obj });
+    } catch (e) {
+      res.status(500).json({ status: 'error', message: 'Invalid JSON from CLI', raw: String(stdout || '') });
+    }
+  });
+});
+
+// 4. Tail endpoint with allowlist
 app.get('/api/tail', (req, res) => {
   const filePath = req.query.path;
   const n = parseInt(req.query.n) || 100;
