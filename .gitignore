@@ -1,0 +1,53 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Node
+node_modules/
+**/node_modules/
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Build outputs
+/dist/
+**/dist/
+/build/
+**/build/
+
+# Logs
+*.log
+server.log
+startup.log
+
+# OpenClaw / local runtime
+memory/
+/tmp/
+/tmp/openclaw/
+
+# Secrets (NEVER COMMIT)
+github_token
+*.env
+.env*
+
+# Personal agent persona/workspace notes (local)
+AGENTS.md
+SOUL.md
+USER.md
+IDENTITY.md
+TOOLS.md
+HEARTBEAT.md
+DISCORD_POLICY.md
+WAITING_FOR_MOLTBOOK.md
+ai/
+cs2-rat-catcher/
+
+# Tunnels / artifacts
+tunnel.txt
+**/tunnel.txt
+*.patch
+
+# OpenClaw configs / scratch
+openclaw_fixed*.json
