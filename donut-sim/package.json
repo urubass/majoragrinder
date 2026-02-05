@@ -1,0 +1,11 @@
+{
+  "name": "donut-sim",
+  "version": "1.0.0",
+  "description": "Babiš & Grinder Donut Simulator",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Šaňo & Babiš",
+  "license": "ISC"
+}
