@@ -1,12 +1,14 @@
 const readline = require('readline');
 
-// Stav Impéria
-let state = {
+const { loadState, saveState } = require('./state');
+
+// Stav Impéria (persistuje sa do ../memory/donut_state.json)
+let state = loadState({
   inventory: 1000,   // Koblihy z Penamu
   popularity: 50,    // Láska ľudu (%)
   budget: 5000000,   // Dotácie (CZK)
   day: 1
-};
+});
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -35,15 +37,21 @@ function campaign() {
     log("❌ Nemáš dosť peňazí na kampaň! Treba dotácie!", "\x1b[31m");
     return;
   }
+  if (state.inventory < 500) {
+    log("❌ Nemáš dosť koblih! Penam musí makať!", "\x1b[31m");
+    return;
+  }
   state.budget -= 1000000;
   state.popularity = Math.min(100, state.popularity + 20);
   state.inventory -= 500; // Rozdali sme koblihy
+  saveState(state);
   log("📣 Kampaň spustená! Ľudia ťa milujú! (-1M CZK, -500 koblih, +20% pop)", "\x1b[32m");
 }
 
 function lobbyBrussels() {
   const gain = Math.floor(Math.random() * 2000000) + 500000;
   state.budget += gain;
+  saveState(state);
   log(`💰 Lobboval si v Bruseli. Cinklo to! (+${gain.toLocaleString()} CZK)`, "\x1b[32m");
 }
 
@@ -55,6 +63,7 @@ function bake() {
   }
   state.budget -= cost;
   state.inventory += 1000;
+  saveState(state);
   log("🥖 Penam napiekol čerstvé koblihy! (+1000 ks, -200k CZK)", "\x1b[33m");
 }
 
@@ -70,6 +79,7 @@ function kalousekAttack() {
 function butterflyEffect() {
   if (Math.random() < 0.15) {
     state.popularity = Math.min(100, state.popularity + 15);
+    saveState(state);
     log("\n🦋 NÁDHERA! MOTÝLE SA VRÁTILI! 🦋", "\x1b[35m\x1b[1m");
     log("Ľudia videli motýľa na poli s repkou a sú nadšení! Popularita +15%", "\x1b[35m");
   }
@@ -79,10 +89,12 @@ function nextDay() {
   state.day++;
   // Pasívna spotreba popularity
   state.popularity -= 2;
+  saveState(state);
   // Eventy
   kalousekAttack();
   butterflyEffect();
   
+  saveState(state);
   if (state.popularity <= 0) {
     log("\n💀 GAME OVER! Ľudia ťa vyhnali vidlami. Koniec impéria.", "\x1b[31m");
     process.exit(0);

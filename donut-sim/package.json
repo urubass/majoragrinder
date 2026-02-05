@@ -1,11 +1,11 @@
 {
-  "name": "donut-market-sim",
+  "name": "donut-sim",
   "version": "1.0.0",
-  "description": "Ekonomický simulátor impéria",
+  "description": "Babiš & Grinder Donut Simulator",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
-  "author": "Babiš & Grinder",
+  "author": "Šaňo & Babiš",
   "license": "ISC"
 }
