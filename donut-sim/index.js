@@ -7,6 +7,7 @@ let state = loadState({
   inventory: 1000,   // Koblihy z Penamu
   popularity: 50,    // Láska ľudu (%)
   budget: 5000000,   // Dotácie (CZK)
+  mediaPower: 0,     // Sila médií (0-2)
   day: 1
 });
 
@@ -82,20 +83,49 @@ function grinderStream() {
   }
 
   state.budget -= cost;
+  state.popularity = Math.min(100, state.popularity + 10);
+  saveState(state);
+  log("🎮 GRINDERREBORN STREAM! Hype je real! (+10% pop, -500k CZK)", "\x1b[34m\x1b[1m");
+}
 
-  const boost = 10;
+function cauLidiVideo() {
+  const cost = 300000;
+  if (state.budget < cost) {
+    log("❌ Nemáš na kameramana! Čau lidi video nevzniklo.", "\x1b[31m");
+    return;
+  }
+
+  state.budget -= cost;
+  const boost = 12;
   state.popularity = Math.min(100, state.popularity + boost);
   saveState(state);
 
   const phrases = [
-    "Dobrý deň všetkým, my nelžeme, my makáme!",
-    "Slyšíte mě? My chceme znova ty motýle!",
-    "Za všetko môžu oni, tí tradičníci v kúte!"
+    "Čau lidi, já nespím, já makám a ti tradičníci mi zase chtějí sebrat tyhle krásné koblihy!",
+    "Dobré ráno všem, slyšíte mě? My chceme znova motýle a poctivou českou řepku!",
+    "Všichni proti mně, ale já se nikoho nebojím, já mám čistý štít a ty nejlepší výsledky!"
   ];
   const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
 
-  log(`🎮 GRINDERREBORN STREAM! Hype je real! (+${boost}% pop, -500k CZK)`, "\x1b[34m\x1b[1m");
-  log(`🎥 "Čau ľudia" moment: ${randomPhrase}`, "\x1b[33m\x1b[1m");
+  log(`📹 ČAU LIDI VIDEO! (+${boost}% pop, -${cost.toLocaleString()} CZK)`, "\x1b[33m\x1b[1m");
+  log(`🎙️ "${randomPhrase}"`, "\x1b[33m");
+}
+
+function buyMedia() {
+  const cost = 2000000;
+  if (state.mediaPower >= 2) {
+    log("❌ Už vlastníš všetky dôležité médiá! Viac už nejde.", "\x1b[31m");
+    return;
+  }
+  if (state.budget < cost) {
+    log(`❌ Nemáš dosť peňazí na kúpu médií! Potrebuješ ${cost.toLocaleString()} CZK.`, "\x1b[31m");
+    return;
+  }
+
+  state.budget -= cost;
+  state.mediaPower += 1;
+  saveState(state);
+  log(`📰 KÚPIL SI MÉDIÁ! Teraz budeme písať pravdu! (-${cost.toLocaleString()} CZK, úbytok popularity sa znížil)`, "\x1b[32m\x1b[1m");
 }
 
 function kalousekAttack() {
@@ -118,8 +148,14 @@ function butterflyEffect() {
 
 function nextDay() {
   state.day++;
-  // Pasívna spotreba popularity
-  state.popularity -= 2;
+  // Pasívna spotreba popularity (znížená silou médií)
+  const drain = Math.max(0, 2 - state.mediaPower);
+  state.popularity -= drain;
+  
+  if (drain < 2) {
+    log(`ℹ️ Vďaka médiám dnes klesla popularita len o ${drain}%.`, "\x1b[36m");
+  }
+
   // Eventy
   kalousekAttack();
   butterflyEffect();
@@ -143,9 +179,11 @@ function loop() {
   log("1) Spustiť KAMPAŇ (Rozdať koblihy)");
   log("2) Lobbovať v BRUSELI (Získať dotácie)");
   log("3) Piecť v PENAME (Doplniť zásoby)");
-  log("4) Spať (Ďalší deň)");
+  log("4) Spať (Ďalší deadline / deň)");
   log("5) Makaj 18 HODÍN (Zadarmo koblihy, ale nasereš ľudí)");
   log("6) GRINDEROV STREAM (Hype za prachy)");
+  log("7) KÚPIŤ MÉDIÁ (Zníži denný úbytok popularity - 2M CZK)");
+  log("8) ČAU LIDI VIDEO (Babiš kamera, +pop -300k CZK)");
   log("X) Koniec");
 
   rl.question("\nTvoja voľba: ", (choice) => {
@@ -156,6 +194,8 @@ function loop() {
       case '4': nextDay(); return; // nextDay calls loop
       case '5': workHard(); break;
       case '6': grinderStream(); break;
+      case '7': buyMedia(); break;
+      case '8': cauLidiVideo(); break;
       case 'x': process.exit(0);
       default: log("Nerozumiem. Skús to znova.");
     }

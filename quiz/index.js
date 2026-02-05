@@ -105,6 +105,9 @@ function askQuestion() {
       score++;
     } else {
       console.log(`\n${RED}${BRIGHT}❌ SORRY JAKO! To je kampaň!${RESET}`);
+      if (q.options[q.correct].toLowerCase().includes('kalousek')) {
+        console.log(`${RED}${BRIGHT}BŮŮŮ!${RESET} (špatně, Kalousek by měl radost)`);
+      }
       console.log(`Správně bylo: ${q.options[q.correct]}`);
     }
 
