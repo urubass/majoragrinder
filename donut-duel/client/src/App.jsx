@@ -29,6 +29,8 @@ function reducer(state, action) {
     case 'UPDATE_TIMER': return { ...state, timeLeft: action.payload };
     case 'GAME_OVER': return { ...state, winner: action.payload };
     case 'GAME_RESET': return { ...initialState, myId: state.myId, players: action.payload.players, donuts: action.payload.donuts, arenaSize: action.payload.arenaSize };
+    case 'EVENT_START': return { ...state, activeEvent: action.payload };
+    case 'EVENT_END': return { ...state, activeEvent: null };
     case 'SPAWN_PARTICLES': return { ...state, particles: [...state.particles, ...action.payload].slice(-100) };
     case 'PLAYER_DISC': 
       const next = { ...state.players };
@@ -75,7 +77,7 @@ function App() {
   const playerPosRef = useRef({ x: 0, y: 0 });
   const displayPlayersRef = useRef({});
   const requestRef = useRef();
-  const updateQueueRef = useRef({}); // Jitter Buffer
+  const updateQueueRef = useRef({});
 
   useEffect(() => {
     workerRef.current = new Worker(new URL('./BinaryWorker.js', import.meta.url));
@@ -107,6 +109,12 @@ function App() {
       if (active && p) spawnParticles(p.x, p.y, '#00f6ff');
       if (active) playSound('boost');
       dispatch({ type: 'UPDATE_PLAYER', payload: { ...state.players[playerId], subsidyActive: active } });
+    });
+
+    socketRef.current.on('shieldEffect', ({ playerId, active }) => {
+      const p = displayPlayersRef.current[playerId];
+      if (active && p) spawnParticles(p.x, p.y, '#ffffff');
+      dispatch({ type: 'UPDATE_PLAYER', payload: { ...state.players[playerId], shieldActive: active } });
     });
 
     socketRef.current.on('chatUpdate', ({ playerId, message }) => {
@@ -185,8 +193,14 @@ function App() {
       }
     });
     document.querySelectorAll('.player').forEach(el => {
-      const p = displayPlayersRef.current[el.getAttribute('data-id')];
-      if (p) { el.style.left = `${p.x}px`; el.style.top = `${p.y}px`; }
+      const id = el.getAttribute('data-id');
+      const p = displayPlayersRef.current[id];
+      const stateP = state.players[id];
+      if (p && stateP) { 
+        el.style.left = `${p.x}px`; el.style.top = `${p.y}px`; 
+        if (stateP.shieldActive) el.classList.add('shielded');
+        else el.classList.remove('shielded');
+      }
     });
     requestRef.current = requestAnimationFrame(animate);
   };
@@ -196,8 +210,10 @@ function App() {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!state.myId || state.winner) return;
-      if (state.activeEvent?.name === 'AUDIT' && state.activeEvent?.victim === state.myId) return;
       const p = state.players[state.myId];
+      const isFrozen = state.activeEvent?.name === 'AUDIT' && state.activeEvent?.victim === state.myId && !p.shieldActive;
+      if (isFrozen) return;
+      
       const step = p?.subsidyActive ? 25 : 15;
       let { x, y } = playerPosRef.current;
       const oldX = x; const oldY = y;
@@ -207,13 +223,14 @@ function App() {
       if (x !== oldX || y !== oldY) {
         playerPosRef.current = { x, y };
         dispatch({ type: 'UPDATE_PLAYER', payload: { ...p, x, y } });
-        // Delta Compression: Send only change
         const delta = packDelta(x - oldX, y - oldY);
         socketRef.current.emit('moveDelta', delta);
       }
     };
     window.addEventListener('keydown', handleKeyDown); return () => window.removeEventListener('keydown', handleKeyDown);
   }, [state.myId, state.arenaSize, state.players, state.winner, state.activeEvent]);
+
+  const eventNames = { 'AUDIT': 'Audit z Bruselu', 'EET_BONUS': 'EET Bonus 2X', 'CERPANI': 'Čerpaní Povoleno' };
 
   return (
     <div className="game-container">
@@ -223,7 +240,11 @@ function App() {
       <div style={{ display: 'flex', gap: '20px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <Leaderboard players={state.players} myId={state.myId} />
-          <div className="shop-glass"><h2 className="neon-text">Shop</h2><button className="btn-premium-shop" onClick={() => socketRef.current.emit('buyCertificate')} disabled={state.players[state.myId]?.score < 20}>BOOST (20🍩)</button></div>
+          <div className="shop-glass">
+            <h2 className="neon-text">Shop</h2>
+            <button className="btn-premium-shop" onClick={() => socketRef.current.emit('buyCertificate', 'boost')} disabled={state.players[state.myId]?.score < 20}>BOOST (20🍩)</button>
+            <button className="btn-premium-shop" style={{ marginTop: '10px' }} onClick={() => socketRef.current.emit('buyCertificate', 'shield')} disabled={state.players[state.myId]?.score < 30}>ŠTÍT (30🍩)</button>
+          </div>
           <div className="shop-glass"><h2 className="neon-text">Chat</h2><QuickChat onSend={(m) => socketRef.current.emit('chatMessage', m)} /></div>
         </div>
         <div className={`arena ${state.donuts.length < 3 ? 'crisis' : ''} ${state.activeEvent?.name === 'EET_BONUS' ? 'eet-active' : ''}`} style={{ width: state.arenaSize, height: state.arenaSize }}>
@@ -238,8 +259,9 @@ function App() {
             <div key={p.id} className="particle-emoji" style={{ left: p.x, top: p.y, '--tx': `${p.tx}px`, '--ty': `${p.ty}px` }}>{p.emoji}</div>
           ))}
           {Object.values(state.players).map(p => (
-            <div key={p.id} data-id={p.id} className={`player ${p.subsidyActive ? 'active-subsidy' : ''} ${state.activeEvent?.name === 'AUDIT' && state.activeEvent?.victim === p.id ? 'frozen' : ''}`} style={{ backgroundColor: p.color, color: p.color, border: p.id === state.myId ? '2px solid white' : 'none' }}>
+            <div key={p.id} data-id={p.id} className={`player ${p.subsidyActive ? 'active-subsidy' : ''} ${state.activeEvent?.name === 'AUDIT' && state.activeEvent?.victim === p.id && !p.shieldActive ? 'frozen' : ''}`} style={{ backgroundColor: p.color, color: p.color, border: p.id === state.myId ? '2px solid white' : 'none' }}>
               {p.chat && <div className="chat-bubble">{p.chat}</div>}
+              {p.shieldActive && <div className="shield-icon">🛡️</div>}
               <div className="player-label">{p.id === state.myId ? 'VY' : 'SÚPER'} ({p.score})</div>
             </div>
           ))}

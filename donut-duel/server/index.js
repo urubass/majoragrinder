@@ -80,7 +80,6 @@ class GameEngine {
       }
     } else if (selected === 'EET_BONUS') {
       duration = 10000;
-      eventData.duration = duration;
       io.emit('eventStart', eventData);
       setTimeout(() => this.clearEvent(), duration);
     } else if (selected === 'CERPANI') {
@@ -112,7 +111,7 @@ class GameEngine {
 
   resetGame() {
     this.timeLeft = GAME_DURATION;
-    Object.values(this.players).forEach(p => { p.score = 0; p.subsidyActive = false; });
+    Object.values(this.players).forEach(p => { p.score = 0; p.subsidyActive = false; p.shieldActive = false; });
     this.donuts = [];
     this.subsidies = [];
     this.spawnDonuts();
@@ -131,6 +130,7 @@ io.on('connection', (socket) => {
     y: Math.random() * (ARENA_SIZE - 50),
     score: 0,
     subsidyActive: false,
+    shieldActive: false,
     color: `hsl(${Math.random() * 360}, 70%, 50%)`
   };
 
@@ -153,10 +153,8 @@ io.on('connection', (socket) => {
     const player = game.players[socket.id];
     if (player) {
       const view = new DataView(deltaBuffer);
-      const dx = view.getInt8(0);
-      const dy = view.getInt8(1);
-      player.x += dx;
-      player.y += dy;
+      player.x += view.getInt8(0);
+      player.y += view.getInt8(1);
       
       game.donuts = game.donuts.filter(donut => {
         if (Math.sqrt((player.x - donut.x)**2 + (player.y - donut.y)**2) < 30) {
@@ -179,18 +177,31 @@ io.on('connection', (socket) => {
         game.spawnDonuts();
         io.emit('donutsUpdate', game.donuts);
       }
-      // Broadcast delta to others
       socket.broadcast.emit('playerDelta', { id: socket.id, delta: deltaBuffer });
     }
   });
 
   socket.on('chatMessage', (msg) => io.emit('chatUpdate', { playerId: socket.id, message: msg }));
-  socket.on('buyCertificate', () => {
+
+  socket.on('buyCertificate', (type) => {
     const player = game.players[socket.id];
-    if (player && player.score >= 20 && !player.subsidyActive) {
+    if (!player) return;
+
+    if (type === 'boost' && player.score >= 20 && !player.subsidyActive) {
       player.score -= 20;
       io.emit('scoreUpdate', { playerId: socket.id, score: player.score });
       activateBoost(socket.id, 10000);
+    } else if (type === 'shield' && player.score >= 30 && !player.shieldActive) {
+      player.score -= 30;
+      io.emit('scoreUpdate', { playerId: socket.id, score: player.score });
+      player.shieldActive = true;
+      io.emit('shieldEffect', { playerId: socket.id, active: true });
+      setTimeout(() => {
+        if (game.players[socket.id]) {
+          game.players[socket.id].shieldActive = false;
+          io.emit('shieldEffect', { playerId: socket.id, active: false });
+        }
+      }, 15000);
     }
   });
 
@@ -207,4 +218,4 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => { delete game.players[socket.id]; io.emit('playerDisconnected', socket.id); });
 });
 
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Final Audit: Server running on port ${PORT}`));

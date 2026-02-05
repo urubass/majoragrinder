@@ -511,6 +511,20 @@ body {
   100% { transform: scale(1) translate(var(--tx), var(--ty)); opacity: 0; }
 }
 
+/* Shield Visuals */
+.player.shielded {
+  border: 4px solid #ffffff !important;
+  box-shadow: 0 0 30px #ffffff, inset 0 0 15px #ffffff !important;
+  filter: brightness(1.2);
+}
+
+.shield-icon {
+  position: absolute;
+  top: -30px;
+  font-size: 1.2rem;
+  animation: pulse 0.5s infinite alternate;
+}
+
 .controls-hint {
   margin-top: 30px;
   font-size: 0.9rem;
