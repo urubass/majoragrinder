@@ -15,6 +15,8 @@ function App() {
   
   const socketRef = useRef();
   const playerPosRef = useRef({ x: 0, y: 0 });
+  const displayPlayersRef = useRef({});
+  const requestRef = useRef();
 
   useEffect(() => {
     socketRef.current = io(SOCKET_URL);
@@ -22,6 +24,7 @@ function App() {
     socketRef.current.on('init', (data) => {
       setMyId(data.id);
       setPlayers(data.players);
+      displayPlayersRef.current = JSON.parse(JSON.stringify(data.players));
       setDonuts(data.donuts);
       setSubsidies(data.subsidies || []);
       setArenaSize(data.arenaSize);
@@ -30,23 +33,25 @@ function App() {
     });
 
     socketRef.current.on('timerUpdate', (time) => setTimeLeft(time));
-    
-    socketRef.current.on('gameOver', (data) => {
-      setWinner(data.winner);
-    });
-
+    socketRef.current.on('gameOver', (data) => setWinner(data.winner));
     socketRef.current.on('gameReset', (data) => {
       setPlayers(data.players);
+      displayPlayersRef.current = JSON.parse(JSON.stringify(data.players));
       setDonuts(data.donuts);
       setWinner(null);
       setTimeLeft(60);
-      if (myId) {
-        playerPosRef.current = { x: data.players[myId].x, y: data.players[myId].y };
-      }
+      if (myId) playerPosRef.current = { x: data.players[myId].x, y: data.players[myId].y };
     });
 
-    socketRef.current.on('newPlayer', (p) => setPlayers(prev => ({ ...prev, [p.id]: p })));
-    socketRef.current.on('playerMoved', (p) => setPlayers(prev => ({ ...prev, [p.id]: p })));
+    socketRef.current.on('newPlayer', (p) => {
+      setPlayers(prev => ({ ...prev, [p.id]: p }));
+      displayPlayersRef.current[p.id] = p;
+    });
+
+    socketRef.current.on('playerMoved', (p) => {
+      setPlayers(prev => ({ ...prev, [p.id]: p }));
+    });
+
     socketRef.current.on('scoreUpdate', ({ playerId, score }) => {
       setPlayers(prev => ({ ...prev, [playerId]: { ...prev[playerId], score } }));
     });
@@ -61,10 +66,46 @@ function App() {
         delete next[id];
         return next;
       });
+      delete displayPlayersRef.current[id];
     });
 
     return () => socketRef.current.disconnect();
   }, [myId]);
+
+  // Interpolation loop for "Buttery Smooth" movement
+  const animate = () => {
+    const lerp = (start, end, amt) => (1 - amt) * start + amt * end;
+    const lerpAmt = 0.25;
+
+    Object.keys(players).forEach(id => {
+      if (displayPlayersRef.current[id]) {
+        displayPlayersRef.current[id].x = lerp(displayPlayersRef.current[id].x, players[id].x, lerpAmt);
+        displayPlayersRef.current[id].y = lerp(displayPlayersRef.current[id].y, players[id].y, lerpAmt);
+        displayPlayersRef.current[id].score = players[id].score;
+        displayPlayersRef.current[id].subsidyActive = players[id].subsidyActive;
+      }
+    });
+    
+    // Force re-render of avatars only
+    const avatars = document.querySelectorAll('.player');
+    avatars.forEach(avatar => {
+      const id = avatar.getAttribute('data-id');
+      const p = displayPlayersRef.current[id];
+      if (p) {
+        avatar.style.left = `${p.x}px`;
+        avatar.style.top = `${p.y}px`;
+        if (p.subsidyActive) avatar.classList.add('active-subsidy');
+        else avatar.classList.remove('active-subsidy');
+      }
+    });
+
+    requestRef.current = requestAnimationFrame(animate);
+  };
+
+  useEffect(() => {
+    requestRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(requestRef.current);
+  }, [players]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -127,8 +168,8 @@ function App() {
         {donuts.map(d => <div key={d.id} className="donut" style={{ left: d.x, top: d.y }}>🍩</div>)}
         {subsidies.map(s => <div key={s.id} className="subsidy-packet" style={{ left: s.x, top: s.y }}>💰</div>)}
         {Object.values(players).map(p => (
-          <div key={p.id} className={`player ${p.subsidyActive ? 'active-subsidy' : ''}`}
-            style={{ left: p.x, top: p.y, backgroundColor: p.color, color: p.color, border: p.id === myId ? '2px solid white' : 'none', opacity: p.id === myId ? 1 : 0.8 }}>
+          <div key={p.id} data-id={p.id} className="player"
+            style={{ backgroundColor: p.color, color: p.color, border: p.id === myId ? '2px solid white' : 'none' }}>
             <div className="player-label">{p.id === myId ? 'VY' : 'SÚPER'} ({p.score})</div>
           </div>
         ))}
