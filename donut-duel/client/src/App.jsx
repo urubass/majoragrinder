@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useReducer, useState } from 'react';
 import { io } from 'socket.io-client';
+import { playSound, stopSound } from './AudioManager';
 import './App.css';
 
 const SOCKET_URL = 'http://localhost:3001';
@@ -51,6 +52,9 @@ function App() {
   const displayPlayersRef = useRef({});
   const requestRef = useRef();
 
+  const isCrisis = state.donuts.length < 3;
+  const crisisRef = useRef(false);
+
   useEffect(() => {
     socketRef.current = io(SOCKET_URL);
 
@@ -61,23 +65,31 @@ function App() {
     });
 
     socketRef.current.on('timerUpdate', (time) => dispatch({ type: 'UPDATE_TIMER', payload: time }));
-    socketRef.current.on('gameOver', (data) => dispatch({ type: 'GAME_OVER', payload: data.winner }));
+    socketRef.current.on('gameOver', (data) => {
+      dispatch({ type: 'GAME_OVER', payload: data.winner });
+      stopSound('kampan');
+    });
+
     socketRef.current.on('gameReset', (data) => {
       dispatch({ type: 'GAME_RESET', payload: data });
       if (state.myId) playerPosRef.current = { x: data.players[state.myId].x, y: data.players[state.myId].y };
     });
 
     socketRef.current.on('scoreUpdate', ({ playerId, score }) => {
-      // Trigger particles at player position
       const p = displayPlayersRef.current[playerId];
-      if (p) spawnParticles(p.x, p.y, '#ffd700');
-      
+      if (p) {
+        spawnParticles(p.x, p.y, '#ffd700');
+        playSound('collect');
+      }
       dispatch({ type: 'UPDATE_PLAYER', payload: { ...state.players[playerId], score } });
     });
 
     socketRef.current.on('subsidyEffect', ({ playerId, active }) => {
       const p = displayPlayersRef.current[playerId];
-      if (p && active) spawnParticles(p.x, p.y, '#00f6ff');
+      if (p && active) {
+        spawnParticles(p.x, p.y, '#00f6ff');
+        playSound('boost');
+      }
       dispatch({ type: 'UPDATE_PLAYER', payload: { ...state.players[playerId], subsidyActive: active } });
     });
 
@@ -95,6 +107,15 @@ function App() {
 
     return () => socketRef.current.disconnect();
   }, [state.myId]);
+
+  useEffect(() => {
+    if (isCrisis && !crisisRef.current) {
+      playSound('kampan');
+    } else if (!isCrisis && crisisRef.current) {
+      stopSound('kampan');
+    }
+    crisisRef.current = isCrisis;
+  }, [isCrisis]);
 
   const spawnParticles = (x, y, color) => {
     const newParticles = Array.from({ length: 10 }).map(() => ({
@@ -164,7 +185,6 @@ function App() {
   }, [state.myId, state.arenaSize, state.players, state.winner]);
 
   const myPlayer = state.myId ? state.players[state.myId] : null;
-  const isCrisis = state.donuts.length < 3;
 
   return (
     <div className="game-container">
