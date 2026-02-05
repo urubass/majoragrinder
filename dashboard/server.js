@@ -7,11 +7,14 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const WORKSPACE = process.env.WORKSPACE || path.join(process.env.HOME, '.openclaw/workspace');
 
-// Allowed paths for tailing
+// Allowed directories for tailing (resolved + boundary-safe)
 const ALLOWED_DIRS = [
-  '/tmp/openclaw/',
-  path.join(WORKSPACE, 'memory/')
-];
+  '/tmp/openclaw',
+  path.join(WORKSPACE, 'memory')
+].map((d) => {
+  const r = path.resolve(d);
+  return r.endsWith(path.sep) ? r : r + path.sep;
+});
 
 app.use(express.static('public'));
 
@@ -33,7 +36,8 @@ app.get('/api/recent-files', (req, res) => {
     if (error) {
       return res.status(500).json({ status: 'error', message: error.message });
     }
-    res.json({ files: stdout.trim().split('\\n') });
+    const out = (stdout || '').trim();
+    res.json({ files: out ? out.split('\\n') : [] });
   });
 });
 
@@ -46,9 +50,10 @@ app.get('/api/tail', (req, res) => {
     return res.status(400).json({ error: 'Missing path parameter' });
   }
 
-  // Security check: resolve path and check if it starts with an allowed directory
+  // Security check: resolve path and check boundary-safe allowed directories
   const resolvedPath = path.resolve(filePath);
-  const isAllowed = ALLOWED_DIRS.some(dir => resolvedPath.startsWith(dir));
+  const resolvedWithSep = resolvedPath.endsWith(path.sep) ? resolvedPath : resolvedPath + path.sep;
+  const isAllowed = ALLOWED_DIRS.some((dir) => resolvedWithSep.startsWith(dir));
 
   if (!isAllowed) {
     return res.status(403).json({ error: 'Access denied to this path' });
