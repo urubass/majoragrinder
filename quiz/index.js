@@ -40,6 +40,24 @@ const questions = [
     options: ["Kouká na televizi", "Spí taky", "Maká pro lidi 18 hodin denně!"],
     correct: 2,
     msg: "Přesně! 18 hodin denně! Žádný spánek!"
+  },
+  {
+    q: "Co je v programování nejhorší, stejně jako v politice tradičních stran?",
+    options: ["Špatná káva", "Bugy a korupce v systému", "Málo barev na monitoru"],
+    correct: 1,
+    msg: "Ano! Musíme to opravit! Všechno přepsat!"
+  },
+  {
+    q: "Jaký je rozdíl mezi 'Clean Code' a mým štítem?",
+    options: ["V kódu jsou mezery", "Žádný, obojí je naprosto čisté!", "Kód se dá opravit"],
+    correct: 1,
+    msg: "Samozřejmě! Čistota je základ státu i kódu!"
+  },
+  {
+    q: "Proč je Open Source jako hnutí ANO?",
+    options: ["Protože je to zadarmo", "Protože je to pro lidi a každý šikovný se může zapojit!", "Protože je to open"],
+    correct: 1,
+    msg: "Přesně tak! Je to pro lidi! 🇨🇿"
   }
 ];
 
