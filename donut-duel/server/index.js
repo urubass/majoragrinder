@@ -221,6 +221,13 @@ io.on('connection', (socket) => {
   socket.on('adminEvent', (type) => {
     const allowAdmin = process.env.ENABLE_ADMIN === '1' || process.env.NODE_ENV !== 'production';
     if (!allowAdmin) return;
+
+    if (type === 'RESPAWN_DONUTS') {
+      game.spawnDonuts();
+      io.emit('donutsUpdate', game.donuts);
+      return;
+    }
+
     if (!['AUDIT', 'EET_BONUS', 'CERPANI'].includes(type)) return;
     game.triggerEvent(type);
   });

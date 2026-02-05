@@ -43,6 +43,9 @@ export default function TutorialOverlay({ open, onClose }) {
           <li>Eventy: AUDIT / EET_BONUS / ČERPÁNÍ</li>
           <li>ESC zavře tutorial</li>
         </ol>
+        <div style={{ marginTop: 10, opacity: 0.9 }}>
+          Ak neuvidíte dotačný rast, makajte 18 hodín denne ako my!
+        </div>
         <div className="dd-tutorial-actions">
           <button
             className="btn-premium-shop"

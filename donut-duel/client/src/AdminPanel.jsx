@@ -26,6 +26,7 @@ export default function AdminPanel({ socket, open }) {
         <button className="dd-admin-btn" onClick={() => emit('AUDIT')}>AUDIT</button>
         <button className="dd-admin-btn" onClick={() => emit('EET_BONUS')}>EET_BONUS</button>
         <button className="dd-admin-btn" onClick={() => emit('CERPANI')}>CERPANI</button>
+        <button className="dd-admin-btn" onClick={() => emit('RESPAWN_DONUTS')}>RESPAWN_DONUTS</button>
       </div>
       <div className="dd-admin-hint">
         Toggle: klikni na titul <code>Donut Duel</code>. Viditelné jen v <code>DEV</code> nebo s <code>VITE_ENABLE_ADMIN=1</code>.
