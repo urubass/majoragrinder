@@ -1,0 +1,39 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Node / JS
+node_modules/
+dist/
+build/
+.vite/
+.cache/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Secrets / credentials
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+
+# App-specific (keep creds out of git)
+**/credentials.json
+**/credentials.env
+
+# Runtime state
+memory/heartbeat-state.json
