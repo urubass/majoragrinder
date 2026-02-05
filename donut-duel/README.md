@@ -32,6 +32,16 @@ npm start
 
 The server will run on `http://localhost:3001`.
 
+#### Admin flags (dev/testing)
+
+The server contains a guarded `adminEvent` socket handler for testing events.
+
+- Enable explicitly:
+  ```bash
+  ENABLE_ADMIN=1 npm start
+  ```
+- Or run in non-production (default): `NODE_ENV` not set to `production`.
+
 ### 2. Start the Client
 
 ```bash
@@ -41,6 +51,17 @@ npm run dev
 ```
 
 The client will run on `http://localhost:5173` (default Vite port).
+
+#### Client admin UI (dev/testing)
+
+Admin panel is only visible in:
+- Vite dev mode (`import.meta.env.DEV`), or
+- when started with:
+  ```bash
+  VITE_ENABLE_ADMIN=1 npm run dev
+  ```
+
+Toggle the admin panel by clicking the **Donut Duel** title.
 
 ## How to Play
 
