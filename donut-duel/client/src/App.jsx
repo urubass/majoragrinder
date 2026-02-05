@@ -118,13 +118,12 @@ function App() {
   }, [isCrisis]);
 
   const spawnParticles = (x, y, color) => {
-    const newParticles = Array.from({ length: 10 }).map(() => ({
+    const newParticles = Array.from({ length: 12 }).map(() => ({
       id: Math.random(),
       x,
       y,
-      vx: (Math.random() - 0.5) * 10,
-      vy: (Math.random() - 0.5) * 10,
-      life: 1.0,
+      tx: (Math.random() - 0.5) * 150,
+      ty: (Math.random() - 0.5) * 150,
       color
     }));
     dispatch({ type: 'SPAWN_PARTICLES', payload: newParticles });
@@ -223,11 +222,13 @@ function App() {
         {state.subsidies.map(s => <div key={s.id} className="subsidy-packet" style={{ left: s.x, top: s.y }}>💰</div>)}
         
         {state.particles.map(p => (
-          <div key={p.id} className="particle" style={{ 
+          <div key={p.id} className="particle-burst" style={{ 
             left: p.x, 
             top: p.y, 
             backgroundColor: p.color,
-            boxShadow: `0 0 5px ${p.color}`
+            '--tx': `${p.tx}px`,
+            '--ty': `${p.ty}px`,
+            boxShadow: `0 0 10px ${p.color}, 0 0 20px ${p.color}`
           }} />
         ))}
 
