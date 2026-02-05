@@ -124,10 +124,15 @@ function finishQuiz() {
   if (score === questions.length) {
     console.log(`\n${GREEN}${BRIGHT}🏆 GRATULUJEME! Jsi pravý srdcař Hnutí!${RESET}`);
     console.log("Máš nárok na koblihu a funkci ministra!");
+    console.log("\n--- TABULKA VÍTĚZŮ ---");
+    console.log(`1. ${os.userInfo().username} (Ministr Všeho) - ${score} bodů`);
   } else if (score > 2) {
     console.log(`\n${YELLOW}Není to špatné, ale chce to víc makat!${RESET}`);
   } else {
     console.log(`\n${RED}To je katastrofa! Ty jsi snad od Kalouska?!${RESET}`);
+    console.log(`${RED}!!! SORRY JAKO !!!${RESET}`);
+    console.log("\n--- TABULKA OSTUDY ---");
+    console.log(`1. ${os.userInfo().username} (Kalousek Agent) - ${score} bodů`);
   }
   
   rl.close();
