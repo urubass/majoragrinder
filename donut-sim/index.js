@@ -58,13 +58,20 @@ function lobbyBrussels() {
 function bake() {
   const cost = 200000;
   if (state.budget < cost) {
-    log("❌ Nemáš na múku! Penam stojí!", "\x1b[31m");
+    log("❌ Nemáš na múku! Penam musí stáť!", "\x1b[31m");
     return;
   }
   state.budget -= cost;
   state.inventory += 1000;
   saveState(state);
   log("🥖 Penam napiekol čerstvé koblihy! (+1000 ks, -200k CZK)", "\x1b[33m");
+}
+
+function workHard() {
+  state.inventory += 2000;
+  state.popularity -= 10;
+  saveState(state);
+  log("💪 MAKAČKA! Makal si 18 hodín ako drak! (+2000 koblih, -10% popularita - lidi jsou unavení)", "\x1b[31m\x1b[1m");
 }
 
 function kalousekAttack() {
@@ -89,7 +96,6 @@ function nextDay() {
   state.day++;
   // Pasívna spotreba popularity
   state.popularity -= 2;
-  saveState(state);
   // Eventy
   kalousekAttack();
   butterflyEffect();
@@ -114,6 +120,7 @@ function loop() {
   log("2) Lobbovať v BRUSELI (Získať dotácie)");
   log("3) Piecť v PENAME (Doplniť zásoby)");
   log("4) Spať (Ďalší deň)");
+  log("5) Makaj 18 HODÍN (Zadarmo koblihy, ale nasereš ľudí)");
   log("X) Koniec");
 
   rl.question("\nTvoja voľba: ", (choice) => {
@@ -122,6 +129,7 @@ function loop() {
       case '2': lobbyBrussels(); break;
       case '3': bake(); break;
       case '4': nextDay(); return; // nextDay calls loop
+      case '5': workHard(); break;
       case 'x': process.exit(0);
       default: log("Nerozumiem. Skús to znova.");
     }
