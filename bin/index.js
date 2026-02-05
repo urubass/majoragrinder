@@ -69,14 +69,18 @@ if (!command) {
   console.log(`${RED}Použitie: grinder <command>${RESET}`);
   console.log("Commands:");
   console.log(`  ${GREEN}status${RESET}   - Show empire status (add --json for machine output)`);
-  console.log(`  ${YELLOW}dotace${RESET}   - Calculate saved 'dotace'`);
+  console.log(`  ${YELLOW}dotace${RESET}   - Calculate saved 'dotace' (add --json)`);
   console.log(`  ${MAGENTA}kampan${RESET}   - Auto-reply to campaign`);
 } else if (command === 'status') {
   showStatus({ json: args.includes('--json') });
 } else if (command === 'dotace') {
   const amount = Math.floor(Math.random() * 50000000) + 1000000;
-  console.log(`${YELLOW}${BRIGHT}💰 DOTACE SECURED: ${amount.toLocaleString()} CZK${RESET}`);
-  console.log(`${GREEN}   (Samozřejmě legálně a podle pravidel EU)${RESET}`);
+  if (args.includes('--json')) {
+    console.log(JSON.stringify({ dotaceCzk: amount }, null, 2));
+  } else {
+    console.log(`${YELLOW}${BRIGHT}💰 DOTACE SECURED: ${amount.toLocaleString()} CZK${RESET}`);
+    console.log(`${GREEN}   (Samozřejmě legálně a podle pravidel EU)${RESET}`);
+  }
 } else if (command === 'kampan') {
   const responses = [
     "To je účelovka!",
