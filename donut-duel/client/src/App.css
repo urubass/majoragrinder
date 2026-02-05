@@ -354,6 +354,37 @@ body {
   box-shadow: none;
 }
 
+/* Event Overlays */
+.event-banner {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 30px;
+  border-radius: 50px;
+  font-weight: 900;
+  text-transform: uppercase;
+  z-index: 100;
+  letter-spacing: 3px;
+  animation: bounce 0.5s infinite alternate;
+  box-shadow: 0 0 20px currentColor;
+}
+
+.event-audit { background: #ff0000; color: #fff; }
+.event-eet { background: #ffd700; color: #000; }
+.event-cerpani { background: #00ff00; color: #000; }
+
+.player.frozen {
+  filter: grayscale(1) brightness(0.5);
+  box-shadow: 0 0 20px #ff0000 !important;
+  pointer-events: none;
+}
+
+.arena.eet-active {
+  box-shadow: inset 0 0 100px rgba(255, 215, 0, 0.3);
+  border-color: #ffd700 !important;
+}
+
 .controls-hint {
   margin-top: 30px;
   font-size: 0.9rem;
