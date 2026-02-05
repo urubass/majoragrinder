@@ -7,8 +7,9 @@ function isAdminEnabled() {
   return enableByDev || enableByEnv;
 }
 
-export default function AdminPanel({ socket }) {
+export default function AdminPanel({ socket, open }) {
   if (!isAdminEnabled()) return null;
+  if (!open) return null;
 
   const emit = (type) => {
     try {
@@ -27,7 +28,7 @@ export default function AdminPanel({ socket }) {
         <button className="dd-admin-btn" onClick={() => emit('CERPANI')}>CERPANI</button>
       </div>
       <div className="dd-admin-hint">
-        Visible when <code>import.meta.env.DEV</code> or <code>VITE_ENABLE_ADMIN=1</code>.
+        Toggle: klikni na titul <code>Donut Duel</code>. Viditelné jen v <code>DEV</code> nebo s <code>VITE_ENABLE_ADMIN=1</code>.
       </div>
     </div>
   );
