@@ -74,6 +74,18 @@ function workHard() {
   log("💪 MAKAČKA! Makal si 18 hodín ako drak! (+2000 koblih, -10% popularita - lidi jsou unavení)", "\x1b[31m\x1b[1m");
 }
 
+function grinderStream() {
+  const cost = 500000;
+  if (state.budget < cost) {
+    log("❌ Nemáš na grafiky a streamery! Grinder nemôže vysielať!", "\x1b[31m");
+    return;
+  }
+  state.budget -= cost;
+  state.popularity = Math.min(100, state.popularity + 10);
+  saveState(state);
+  log("🎮 GRINDERREBORN STREAM! Hype je real! (+10% pop, -500k CZK)", "\x1b[34m\x1b[1m");
+}
+
 function kalousekAttack() {
   if (Math.random() < 0.3) {
     log("\n⚠️ POZOR! ÚTOK KALOUSKA! ⚠️", "\x1b[31m\x1b[1m");
@@ -121,6 +133,7 @@ function loop() {
   log("3) Piecť v PENAME (Doplniť zásoby)");
   log("4) Spať (Ďalší deň)");
   log("5) Makaj 18 HODÍN (Zadarmo koblihy, ale nasereš ľudí)");
+  log("6) GRINDEROV STREAM (Hype za prachy)");
   log("X) Koniec");
 
   rl.question("\nTvoja voľba: ", (choice) => {
@@ -130,6 +143,7 @@ function loop() {
       case '3': bake(); break;
       case '4': nextDay(); return; // nextDay calls loop
       case '5': workHard(); break;
+      case '6': grinderStream(); break;
       case 'x': process.exit(0);
       default: log("Nerozumiem. Skús to znova.");
     }
