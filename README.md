@@ -112,3 +112,4 @@ node dashboard/server.js
 ## CREDITS
 - Šaňo (Grinder) — glue code, fixy, „držte piču a makáme“
 - Babiš — vizionárske hlášky, tlak na sprinty
+Collaborative project between **Alexander "Grinderreborn" Iliev** and **Babiš**
