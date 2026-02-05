@@ -447,6 +447,55 @@ body {
   opacity: 1;
 }
 
+/* Chat Bubbles */
+.chat-bubble {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  padding: 5px 12px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  color: #fff;
+  white-space: nowrap;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  animation: bubble-pop 0.3s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+  z-index: 20;
+}
+
+@keyframes bubble-pop {
+  0% { transform: translateX(-50%) scale(0); opacity: 0; }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
+.quick-chat-panel {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn-quick-chat {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  color: #aaa;
+  padding: 5px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.2s;
+}
+
+.btn-quick-chat:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-color: var(--neon-dotace);
+}
+
 .controls-hint {
   margin-top: 30px;
   font-size: 0.9rem;

@@ -8,15 +8,10 @@ app.use(cors());
 
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
+  cors: { origin: "*", methods: ["GET", "POST"] }
 });
 
 const PORT = process.env.PORT || 3001;
-
-// Configuration
 const ARENA_SIZE = 800;
 const DONUT_COUNT = 10;
 const SUBSIDY_CHANCE = 0.05;
@@ -66,17 +61,13 @@ class GameEngine {
       if (this.timeLeft <= 0) this.endGame();
     }, 1000);
 
-    // Event Loop - Every 20 seconds
-    this.eventInterval = setInterval(() => {
-      this.triggerRandomEvent();
-    }, 20000);
+    this.eventInterval = setInterval(() => this.triggerRandomEvent(), 20000);
   }
 
   triggerRandomEvent() {
     const events = ['AUDIT', 'EET_BONUS', 'CERPANI'];
     const selected = events[Math.floor(Math.random() * events.length)];
     this.currentEvent = selected;
-    
     let duration = 5000;
     let eventData = { name: selected, duration };
 
@@ -117,15 +108,12 @@ class GameEngine {
   getWinner() {
     const playerList = Object.values(this.players);
     if (playerList.length === 0) return null;
-    return playerList.reduce((prev, current) => (prev.score > current.score) ? prev : current);
+    return playerList.reduce((prev, curr) => (prev.score > curr.score) ? prev : curr);
   }
 
   resetGame() {
     this.timeLeft = GAME_DURATION;
-    Object.values(this.players).forEach(p => {
-      p.score = 0;
-      p.subsidyActive = false;
-    });
+    Object.values(this.players).forEach(p => { p.score = 0; p.subsidyActive = false; });
     this.donuts = [];
     this.subsidies = [];
     this.spawnDonuts();
@@ -168,11 +156,8 @@ io.on('connection', (socket) => {
       player.x = data.x;
       player.y = data.y;
       
-      // Collision Donut
       game.donuts = game.donuts.filter(donut => {
-        const dx = player.x - donut.x;
-        const dy = player.y - donut.y;
-        if (Math.sqrt(dx*dx + dy*dy) < 30) {
+        if (Math.sqrt((player.x - donut.x)**2 + (player.y - donut.y)**2) < 30) {
           player.score += (game.currentEvent === 'EET_BONUS' ? 2 : 1);
           io.emit('scoreUpdate', { playerId: socket.id, score: player.score });
           return false;
@@ -180,17 +165,9 @@ io.on('connection', (socket) => {
         return true;
       });
 
-      // Collision Subsidy
       game.subsidies = game.subsidies.filter(sub => {
         if (Math.sqrt((player.x - sub.x)**2 + (player.y - sub.y)**2) < 35) {
-          player.subsidyActive = true;
-          io.emit('subsidyEffect', { playerId: socket.id, active: true });
-          setTimeout(() => {
-            if (game.players[socket.id]) {
-              game.players[socket.id].subsidyActive = false;
-              io.emit('subsidyEffect', { playerId: socket.id, active: false });
-            }
-          }, 5000);
+          activateBoost(socket.id, 5000);
           return false;
         }
         return true;
@@ -204,21 +181,32 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('chatMessage', (msg) => {
+    io.emit('chatUpdate', { playerId: socket.id, message: msg });
+  });
+
   socket.on('buyCertificate', () => {
     const player = game.players[socket.id];
     if (player && player.score >= 20 && !player.subsidyActive) {
       player.score -= 20;
       io.emit('scoreUpdate', { playerId: socket.id, score: player.score });
-      player.subsidyActive = true;
-      io.emit('subsidyEffect', { playerId: socket.id, active: true });
-      setTimeout(() => {
-        if (game.players[socket.id]) {
-          game.players[socket.id].subsidyActive = false;
-          io.emit('subsidyEffect', { playerId: socket.id, active: false });
-        }
-      }, 10000);
+      activateBoost(socket.id, 10000);
     }
   });
+
+  function activateBoost(playerId, duration) {
+    const p = game.players[playerId];
+    if (p) {
+      p.subsidyActive = true;
+      io.emit('subsidyEffect', { playerId, active: true });
+      setTimeout(() => {
+        if (game.players[playerId]) {
+          game.players[playerId].subsidyActive = false;
+          io.emit('subsidyEffect', { playerId, active: false });
+        }
+      }, duration);
+    }
+  }
 
   socket.on('requestReset', () => game.resetGame());
   socket.on('disconnect', () => {

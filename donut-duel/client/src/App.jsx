@@ -22,6 +22,8 @@ function reducer(state, action) {
   switch (action.type) {
     case 'INIT': return { ...state, ...action.payload };
     case 'UPDATE_PLAYER': return { ...state, players: { ...state.players, [action.payload.id]: action.payload } };
+    case 'UPDATE_PLAYER_CHAT': 
+      return { ...state, players: { ...state.players, [action.payload.id]: { ...state.players[action.payload.id], chat: action.payload.chat } } };
     case 'UPDATE_DONUTS': return { ...state, donuts: action.payload };
     case 'UPDATE_SUBSIDIES': return { ...state, subsidies: action.payload };
     case 'UPDATE_TIMER': return { ...state, timeLeft: action.payload };
@@ -56,6 +58,17 @@ const Leaderboard = ({ players, myId }) => {
   );
 };
 
+const QuickChat = ({ onSend }) => {
+  const messages = ["Všetci kradnú!", "To je kampaň!", "Bude líp!", "Dotace schválena!"];
+  return (
+    <div className="quick-chat-panel">
+      {messages.map(m => (
+        <button key={m} className="btn-quick-chat" onClick={() => onSend(m)}>{m}</button>
+      ))}
+    </div>
+  );
+};
+
 function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [showAnnouncer, setShowAnnouncer] = useState(false);
@@ -83,6 +96,10 @@ function App() {
       if (active && displayPlayersRef.current[playerId]) spawnParticles(displayPlayersRef.current[playerId].x, displayPlayersRef.current[playerId].y, '#00f6ff');
       if (active) playSound('boost');
       dispatch({ type: 'UPDATE_PLAYER', payload: { ...state.players[playerId], subsidyActive: active } });
+    });
+    socketRef.current.on('chatUpdate', ({ playerId, message }) => {
+      dispatch({ type: 'UPDATE_PLAYER_CHAT', payload: { id: playerId, chat: message } });
+      setTimeout(() => dispatch({ type: 'UPDATE_PLAYER_CHAT', payload: { id: playerId, chat: null } }), 3000);
     });
     socketRef.current.on('eventStart', (ev) => { 
       dispatch({ type: 'EVENT_START', payload: ev }); 
@@ -133,9 +150,9 @@ function App() {
       x = Math.max(0, Math.min(state.arenaSize-34, x)); y = Math.max(0, Math.min(state.arenaSize-34, y));
       if (x !== playerPosRef.current.x || y !== playerPosRef.current.y) {
         playerPosRef.current = { x, y };
-        // Performance: Use binary protocol for move (simulated for now by sending the buffer)
-        const buffer = packPosition(x, y);
-        socketRef.current.emit('move', { x, y }); // Keep legacy for server compatibility for now
+        // Client-side prediction: move immediately in state
+        dispatch({ type: 'UPDATE_PLAYER', payload: { ...p, x, y } });
+        socketRef.current.emit('move', { x, y });
       }
     };
     window.addEventListener('keydown', handleKeyDown); return () => window.removeEventListener('keydown', handleKeyDown);
@@ -147,26 +164,30 @@ function App() {
   return (
     <div className="game-container">
       {state.winner && <div className="winner-modal"><div className="winner-title">VÍTĚZNÝ ÚNOR</div><div className="winner-name">KRÁĽ: {state.winner.id === state.myId ? 'VY' : 'SÚPER'} ({state.winner.score})</div><div className="bude-lip">BUDE LÍP!</div><button className="btn-restart" onClick={() => socketRef.current.emit('requestReset')}>NOVÁ KAMPÁŇ</button></div>}
-      
-      {showAnnouncer && state.activeEvent && (
-        <div className="event-announcer">
-          <div className="announcer-title">MIMOŘÁDNÁ ZPRÁVA</div>
-          <div className="announcer-text">{eventNames[state.activeEvent.name]}</div>
-        </div>
-      )}
-
+      {showAnnouncer && state.activeEvent && (<div className="event-announcer"><div className="announcer-title">MIMOŘÁDNÁ ZPRÁVA</div><div className="announcer-text">{eventNames[state.activeEvent.name]}</div></div>)}
       <div className="hud-glass"><h1 className="title-neon">Donut Duel</h1><div className="stats-row"><div className="stat-card"><span>ČAS</span><span className="count-neon">{state.timeLeft}s</span></div><div className="stat-card"><span>KOBLIHY</span><span className="count-neon">{state.players[state.myId]?.score || 0}</span></div><div className="stat-card"><span>DOTÁCIE</span><span className={`status-neon ${state.players[state.myId]?.subsidyActive ? 'active-text' : ''}`}>{state.players[state.myId]?.subsidyActive ? 'AKTÍVNE' : 'ČEKÁNÍ'}</span></div></div></div>
       <div style={{ display: 'flex', gap: '20px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}><Leaderboard players={state.players} myId={state.myId} /><div className="shop-glass"><h2 className="neon-text">Shop</h2><button className="btn-premium-shop" onClick={() => socketRef.current.emit('buyCertificate')} disabled={state.players[state.myId]?.score < 20}>BOOST (20🍩)</button></div></div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <Leaderboard players={state.players} myId={state.myId} />
+          <div className="shop-glass"><h2 className="neon-text">Shop</h2><button className="btn-premium-shop" onClick={() => socketRef.current.emit('buyCertificate')} disabled={state.players[state.myId]?.score < 20}>BOOST (20🍩)</button></div>
+          <div className="shop-glass"><h2 className="neon-text">Chat</h2><QuickChat onSend={(m) => socketRef.current.emit('chatMessage', m)} /></div>
+        </div>
         <div className={`arena ${isCrisis ? 'crisis' : ''} ${state.activeEvent?.name === 'EET_BONUS' ? 'eet-active' : ''}`} style={{ width: state.arenaSize, height: state.arenaSize }}>
           <div className={`overlay overlay-audit ${state.activeEvent?.name === 'AUDIT' ? 'active-overlay' : ''}`} />
           <div className={`overlay overlay-eet ${state.activeEvent?.name === 'EET_BONUS' ? 'active-overlay' : ''}`} />
-          
           {isCrisis && <div className="campaign-alert">KAMPÁŇ!</div>}
+          {state.activeEvent?.name === 'AUDIT' && <div className="event-banner event-audit">AUDIT Z BRUSELU: {state.players[state.activeEvent.victim]?.id === state.myId ? 'STE ZMRAZENÝ!' : 'SÚPER STOJÍ!'}</div>}
+          {state.activeEvent?.name === 'EET_BONUS' && <div className="event-banner event-eet">EET BONUS: 2X KOBLIHY!</div>}
+          {state.activeEvent?.name === 'CERPANI' && <div className="event-banner event-cerpani">ČERPANÍ POVOLENO!</div>}
           {state.donuts.map(d => <div key={d.id} className="donut" style={{ left: d.x, top: d.y }}>🍩</div>)}
           {state.subsidies.map(s => <div key={s.id} className="subsidy-packet" style={{ left: s.x, top: s.y }}>💰</div>)}
           {state.particles.map(p => <div key={p.id} className="particle-burst" style={{ left: p.x, top: p.y, backgroundColor: p.color, '--tx': `${p.tx}px`, '--ty': `${p.ty}px`, boxShadow: `0 0 10px ${p.color}` }} />)}
-          {Object.values(state.players).map(p => <div key={p.id} data-id={p.id} className={`player ${p.subsidyActive ? 'active-subsidy' : ''} ${state.activeEvent?.name === 'AUDIT' && state.activeEvent?.victim === p.id ? 'frozen' : ''}`} style={{ backgroundColor: p.color, color: p.color, border: p.id === state.myId ? '2px solid white' : 'none' }}><div className="player-label">{p.id === state.myId ? 'VY' : 'SÚPER'} ({p.score})</div></div>)}
+          {Object.values(state.players).map(p => (
+            <div key={p.id} data-id={p.id} className={`player ${p.subsidyActive ? 'active-subsidy' : ''} ${state.activeEvent?.name === 'AUDIT' && state.activeEvent?.victim === p.id ? 'frozen' : ''}`} style={{ backgroundColor: p.color, color: p.color, border: p.id === state.myId ? '2px solid white' : 'none' }}>
+              {p.chat && <div className="chat-bubble">{p.chat}</div>}
+              <div className="player-label">{p.id === state.myId ? 'VY' : 'SÚPER'} ({p.score})</div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
