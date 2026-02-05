@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useReducer, useState } from 'react';
 import { io } from 'socket.io-client';
 import { playSound, stopSound } from './AudioManager';
-import { packPosition } from './BinaryProtocol';
+import { packPosition, packDelta, unpackDelta } from './BinaryProtocol';
 import './App.css';
 
 const SOCKET_URL = 'http://localhost:3001';
@@ -29,8 +29,6 @@ function reducer(state, action) {
     case 'UPDATE_TIMER': return { ...state, timeLeft: action.payload };
     case 'GAME_OVER': return { ...state, winner: action.payload };
     case 'GAME_RESET': return { ...initialState, myId: state.myId, players: action.payload.players, donuts: action.payload.donuts, arenaSize: action.payload.arenaSize };
-    case 'EVENT_START': return { ...state, activeEvent: action.payload };
-    case 'EVENT_END': return { ...state, activeEvent: null };
     case 'SPAWN_PARTICLES': return { ...state, particles: [...state.particles, ...action.payload].slice(-100) };
     case 'PLAYER_DISC': 
       const next = { ...state.players };
@@ -129,10 +127,19 @@ function App() {
     socketRef.current.on('newPlayer', (p) => { dispatch({ type: 'UPDATE_PLAYER', payload: p }); displayPlayersRef.current[p.id] = p; });
     
     socketRef.current.on('playerMoved', (p) => {
-      // Jitter Buffer: Queue updates instead of immediate set
       if (p.id !== state.myId) {
         if (!updateQueueRef.current[p.id]) updateQueueRef.current[p.id] = [];
         updateQueueRef.current[p.id].push({ x: p.x, y: p.y, ts: Date.now() });
+      }
+    });
+
+    socketRef.current.on('playerDelta', ({ id, delta }) => {
+      if (id !== state.myId && state.players[id]) {
+        const { dx, dy } = unpackDelta(delta);
+        const lastX = state.players[id].x;
+        const lastY = state.players[id].y;
+        if (!updateQueueRef.current[id]) updateQueueRef.current[id] = [];
+        updateQueueRef.current[id].push({ x: lastX + dx, y: lastY + dy, ts: Date.now() });
       }
     });
 
@@ -154,24 +161,20 @@ function App() {
     if (msg.includes('líp')) emoji = '❤️';
     if (msg.includes('kradnú')) emoji = '⛓️';
     if (msg.includes('schválena')) emoji = '💰';
-    
-    const p = Array.from({ length: 6 }).map(() => ({ id: Math.random(), type: 'emoji', emoji, x, y, tx: (Math.random()-0.5)*200, ty: (Math.random()-0.5)*200 }));
+    const p = Array.from({ length: 5 }).map(() => ({ id: Math.random(), type: 'emoji', emoji, x, y, tx: (Math.random()-0.5)*200, ty: (Math.random()-0.5)*200 }));
     dispatch({ type: 'SPAWN_PARTICLES', payload: p });
   };
 
   const animate = () => {
     const lerp = (s, e, a) => (1 - a) * s + a * e;
-    
     Object.keys(state.players).forEach(id => {
       const p = state.players[id];
       const disp = displayPlayersRef.current[id];
       if (!disp) return;
-
       if (id === state.myId) {
         disp.x = lerp(disp.x, p.x, 0.4);
         disp.y = lerp(disp.y, p.y, 0.4);
       } else {
-        // High-speed Jitter Buffer Interpolation
         const queue = updateQueueRef.current[id];
         if (queue && queue.length > 0) {
           const target = queue[0];
@@ -181,7 +184,6 @@ function App() {
         }
       }
     });
-
     document.querySelectorAll('.player').forEach(el => {
       const p = displayPlayersRef.current[el.getAttribute('data-id')];
       if (p) { el.style.left = `${p.x}px`; el.style.top = `${p.y}px`; }
@@ -198,13 +200,16 @@ function App() {
       const p = state.players[state.myId];
       const step = p?.subsidyActive ? 25 : 15;
       let { x, y } = playerPosRef.current;
+      const oldX = x; const oldY = y;
       if (e.key === 'ArrowUp') y -= step; if (e.key === 'ArrowDown') y += step;
       if (e.key === 'ArrowLeft') x -= step; if (e.key === 'ArrowRight') x += step;
       x = Math.max(0, Math.min(state.arenaSize-34, x)); y = Math.max(0, Math.min(state.arenaSize-34, y));
-      if (x !== playerPosRef.current.x || y !== playerPosRef.current.y) {
+      if (x !== oldX || y !== oldY) {
         playerPosRef.current = { x, y };
         dispatch({ type: 'UPDATE_PLAYER', payload: { ...p, x, y } });
-        socketRef.current.emit('move', { x, y });
+        // Delta Compression: Send only change
+        const delta = packDelta(x - oldX, y - oldY);
+        socketRef.current.emit('moveDelta', delta);
       }
     };
     window.addEventListener('keydown', handleKeyDown); return () => window.removeEventListener('keydown', handleKeyDown);

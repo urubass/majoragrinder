@@ -60,7 +60,6 @@ class GameEngine {
       io.emit('timerUpdate', this.timeLeft);
       if (this.timeLeft <= 0) this.endGame();
     }, 1000);
-
     this.eventInterval = setInterval(() => this.triggerRandomEvent(), 20000);
   }
 
@@ -149,12 +148,15 @@ io.on('connection', (socket) => {
 
   socket.broadcast.emit('newPlayer', game.players[socket.id]);
 
-  socket.on('move', (data) => {
+  socket.on('moveDelta', (deltaBuffer) => {
     if (!game.gameActive) return;
     const player = game.players[socket.id];
     if (player) {
-      player.x = data.x;
-      player.y = data.y;
+      const view = new DataView(deltaBuffer);
+      const dx = view.getInt8(0);
+      const dy = view.getInt8(1);
+      player.x += dx;
+      player.y += dy;
       
       game.donuts = game.donuts.filter(donut => {
         if (Math.sqrt((player.x - donut.x)**2 + (player.y - donut.y)**2) < 30) {
@@ -177,14 +179,12 @@ io.on('connection', (socket) => {
         game.spawnDonuts();
         io.emit('donutsUpdate', game.donuts);
       }
-      socket.broadcast.emit('playerMoved', player);
+      // Broadcast delta to others
+      socket.broadcast.emit('playerDelta', { id: socket.id, delta: deltaBuffer });
     }
   });
 
-  socket.on('chatMessage', (msg) => {
-    io.emit('chatUpdate', { playerId: socket.id, message: msg });
-  });
-
+  socket.on('chatMessage', (msg) => io.emit('chatUpdate', { playerId: socket.id, message: msg }));
   socket.on('buyCertificate', () => {
     const player = game.players[socket.id];
     if (player && player.score >= 20 && !player.subsidyActive) {
@@ -199,20 +199,12 @@ io.on('connection', (socket) => {
     if (p) {
       p.subsidyActive = true;
       io.emit('subsidyEffect', { playerId, active: true });
-      setTimeout(() => {
-        if (game.players[playerId]) {
-          game.players[playerId].subsidyActive = false;
-          io.emit('subsidyEffect', { playerId, active: false });
-        }
-      }, duration);
+      setTimeout(() => { if (game.players[playerId]) { game.players[playerId].subsidyActive = false; io.emit('subsidyEffect', { playerId, active: false }); } }, duration);
     }
   }
 
   socket.on('requestReset', () => game.resetGame());
-  socket.on('disconnect', () => {
-    delete game.players[socket.id];
-    io.emit('playerDisconnected', socket.id);
-  });
+  socket.on('disconnect', () => { delete game.players[socket.id]; io.emit('playerDisconnected', socket.id); });
 });
 
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
