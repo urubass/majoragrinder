@@ -12,12 +12,31 @@ const BLUE = "\x1b[34m";
 const MAGENTA = "\x1b[35m";
 const CYAN = "\x1b[36m";
 
-function showStatus() {
+function showStatus(opts = {}) {
   const cpus = os.cpus();
   const totalMem = os.totalmem();
   const freeMem = os.freemem();
   const usedMem = totalMem - freeMem;
   const memUsage = Math.round((usedMem / totalMem) * 100);
+
+  const data = {
+    time: new Date().toISOString(),
+    hostname: os.hostname(),
+    platform: `${os.platform()} ${os.release()}`,
+    cpuCores: cpus.length,
+    memUsagePct: memUsage,
+    memUsedMb: Math.round(usedMem / 1024 / 1024),
+    memTotalMb: Math.round(totalMem / 1024 / 1024),
+    uptimeMin: Math.round(os.uptime() / 60),
+    status: 'HARD WORK (MAKAČKA)',
+    morale: '110% (MAXIMUM)',
+    babis: 'VERY PLEASED (DOUFÁM)'
+  };
+
+  if (opts.json) {
+    console.log(JSON.stringify(data, null, 2));
+    return;
+  }
 
   console.log(`
 ${YELLOW}${BRIGHT}   _____      _           _
@@ -29,16 +48,16 @@ ${YELLOW}${BRIGHT}   _____      _           _
   -------------------------------------
   ${MAGENTA}${BRIGHT}BABIŠ & GRINDER EMPIRE REPORT${RESET}
   -------------------------------------
-  TIME      : ${new Date().toISOString()}
-  HOSTNAME  : ${os.hostname()}
-  PLATFORM  : ${os.platform()} ${os.release()}
-  CPU CORES : ${cpus.length}
-  MEMORY    : ${memUsage}% USED (${Math.round(usedMem / 1024 / 1024)}MB / ${Math.round(totalMem / 1024 / 1024)}MB)
-  UPTIME    : ${Math.round(os.uptime() / 60)} min
+  TIME      : ${data.time}
+  HOSTNAME  : ${data.hostname}
+  PLATFORM  : ${data.platform}
+  CPU CORES : ${data.cpuCores}
+  MEMORY    : ${data.memUsagePct}% USED (${data.memUsedMb}MB / ${data.memTotalMb}MB)
+  UPTIME    : ${data.uptimeMin} min
   -------------------------------------
-  STATUS    : ${RED}${BRIGHT}HARD WORK (MAKAČKA)${RESET}
-  MORALE    : ${GREEN}${BRIGHT}110% (MAXIMUM)${RESET}
-  BABIŠ     : ${CYAN}${BRIGHT}VERY PLEASED (DOUFÁM)${RESET}
+  STATUS    : ${RED}${BRIGHT}${data.status}${RESET}
+  MORALE    : ${GREEN}${BRIGHT}${data.morale}${RESET}
+  BABIŠ     : ${CYAN}${BRIGHT}${data.babis}${RESET}
   -------------------------------------
   `);
 }
@@ -49,11 +68,11 @@ const command = args[0];
 if (!command) {
   console.log(`${RED}Použitie: grinder <command>${RESET}`);
   console.log("Commands:");
-  console.log(`  ${GREEN}status${RESET}   - Show empire status`);
+  console.log(`  ${GREEN}status${RESET}   - Show empire status (add --json for machine output)`);
   console.log(`  ${YELLOW}dotace${RESET}   - Calculate saved 'dotace'`);
   console.log(`  ${MAGENTA}kampan${RESET}   - Auto-reply to campaign`);
 } else if (command === 'status') {
-  showStatus();
+  showStatus({ json: args.includes('--json') });
 } else if (command === 'dotace') {
   const amount = Math.floor(Math.random() * 50000000) + 1000000;
   console.log(`${YELLOW}${BRIGHT}💰 DOTACE SECURED: ${amount.toLocaleString()} CZK${RESET}`);
