@@ -1,0 +1,15 @@
+{
+  "name": "majoragrinder",
+  "version": "0.0.1",
+  "description": "Tools for the Grinder Empire",
+  "main": "index.js",
+  "bin": {
+    "grinder": "./bin/index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node bin/index.js"
+  },
+  "author": "Alexander Iliev",
+  "license": "ISC"
+}
