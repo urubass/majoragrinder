@@ -7,6 +7,14 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const WORKSPACE = process.env.WORKSPACE || path.join(process.env.HOME, '.openclaw/workspace');
 
+function sendOk(res, data) {
+  res.json({ ok: true, ...data });
+}
+
+function sendErr(res, statusCode, code, message, extra = {}) {
+  res.status(statusCode).json({ ok: false, error: { code, message }, ...extra });
+}
+
 // Allowed paths for tailing
 const ALLOWED_DIRS = [
   '/tmp/openclaw',
@@ -28,10 +36,10 @@ app.use(express.static('public'));
 app.get('/api/health', (req, res) => {
   exec('openclaw gateway status', (error, stdout, stderr) => {
     if (error) {
-      return res.status(500).json({ status: 'error', message: error.message });
+      return sendErr(res, 500, 'HEALTH_CMD_FAILED', error.message);
     }
     const isRunning = stdout.toLowerCase().includes('running') || stdout.toLowerCase().includes('active');
-    res.json({ status: isRunning ? 'running' : 'stopped', raw: stdout });
+    return sendOk(res, { status: isRunning ? 'running' : 'stopped', raw: stdout });
   });
 });
 
@@ -40,10 +48,10 @@ app.get('/api/recent-files', (req, res) => {
   const cmd = `find "${WORKSPACE}" -type f -mtime -1 ! -path "*/node_modules/*" ! -path "*/.git/*" -printf "%TY-%Tm-%Td %TH:%TM  %p\\n" | sort -r | head -n 50`;
   exec(cmd, (error, stdout, stderr) => {
     if (error) {
-      return res.status(500).json({ status: 'error', message: error.message });
+      return sendErr(res, 500, 'RECENT_FILES_FAILED', error.message);
     }
     const trimmed = stdout.trim();
-    res.json({ files: trimmed ? trimmed.split('\\n') : [] });
+    return sendOk(res, { files: trimmed ? trimmed.split('\\n') : [] });
   });
 });
 
@@ -52,13 +60,13 @@ app.get('/api/dotace', (req, res) => {
   const cmd = `node "${path.join(__dirname, '../bin/index.js')}" dotace --json`;
   exec(cmd, { cwd: path.join(__dirname, '..') }, (error, stdout, stderr) => {
     if (error) {
-      return res.status(500).json({ status: 'error', message: error.message, stderr: String(stderr || '') });
+      return sendErr(res, 500, 'DOTACE_CMD_FAILED', error.message, { stderr: String(stderr || '') });
     }
     try {
       const obj = JSON.parse(String(stdout || '{}'));
-      res.json({ verified: true, source: 'cli', ...obj });
+      return sendOk(res, { verified: true, source: 'cli', ...obj });
     } catch (e) {
-      res.status(500).json({ status: 'error', message: 'Invalid JSON from CLI', raw: String(stdout || '') });
+      return sendErr(res, 500, 'DOTACE_BAD_JSON', 'Invalid JSON from CLI', { raw: String(stdout || '') });
     }
   });
 });
@@ -69,7 +77,7 @@ app.get('/api/tail', (req, res) => {
   const n = parseInt(req.query.n) || 100;
 
   if (!filePath) {
-    return res.status(400).json({ error: 'Missing path parameter' });
+    return sendErr(res, 400, 'TAIL_MISSING_PATH', 'Missing path parameter');
   }
 
   // Security check: resolve path and check boundary-safe membership in allowed dirs
@@ -77,19 +85,19 @@ app.get('/api/tail', (req, res) => {
   const isAllowed = ALLOWED_DIRS.some((dir) => isPathUnderDir(resolvedPath, dir));
 
   if (!isAllowed) {
-    return res.status(403).json({ error: 'Access denied to this path' });
+    return sendErr(res, 403, 'TAIL_ACCESS_DENIED', 'Access denied to this path');
   }
 
   if (!fs.existsSync(resolvedPath)) {
-    return res.status(404).json({ error: 'File not found' });
+    return sendErr(res, 404, 'TAIL_NOT_FOUND', 'File not found');
   }
 
   const cmd = `tail -n ${n} "${resolvedPath}"`;
   exec(cmd, (error, stdout, stderr) => {
     if (error) {
-      return res.status(500).json({ status: 'error', message: error.message });
+      return sendErr(res, 500, 'TAIL_CMD_FAILED', error.message);
     }
-    res.json({ path: resolvedPath, content: stdout });
+    return sendOk(res, { path: resolvedPath, content: stdout });
   });
 });
 
