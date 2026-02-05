@@ -132,6 +132,29 @@ body {
   50% { transform: scale(1.2) rotate(15deg); opacity: 1; }
 }
 
+/* Animace pro aktivní Dotaci */
+@keyframes subsidy-glow {
+  0% { box-shadow: 0 0 5px var(--neon-dotace), inset 0 0 5px var(--neon-dotace); }
+  50% { box-shadow: 0 0 25px var(--neon-dotace), inset 0 0 15px var(--neon-dotace); }
+  100% { box-shadow: 0 0 5px var(--neon-dotace), inset 0 0 5px var(--neon-dotace); }
+}
+
+.active-subsidy {
+  animation: subsidy-glow 1.5s infinite alternate;
+  border-color: var(--neon-dotace) !important;
+  background: rgba(0, 246, 255, 0.15) !important;
+}
+
+/* Styl pro dotační paket (padající předmět) */
+.subsidy-packet {
+  position: absolute;
+  filter: drop-shadow(0 0 8px var(--neon-dotace));
+  font-weight: bold;
+  font-size: 1.4rem;
+  z-index: 5;
+  animation: bounce 1s infinite alternate;
+}
+
 .controls-hint {
   margin-top: 30px;
   font-size: 0.9rem;
