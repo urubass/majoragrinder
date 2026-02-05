@@ -272,6 +272,49 @@ body {
   100% { transform: scale(0); opacity: 0; }
 }
 
+/* Leaderboard Glass Design */
+.leaderboard-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--blur-amount));
+  border: 1px solid var(--glass-border);
+  border-radius: 15px;
+  padding: 15px;
+  margin-top: 20px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.player-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.player-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.player-row:last-child {
+  border-bottom: none;
+}
+
+.top-king {
+  background: rgba(255, 215, 0, 0.1);
+  color: #ffd700;
+  font-weight: bold;
+}
+
+.neon-text {
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin: 0 0 10px 0;
+  text-shadow: 0 0 10px var(--neon-dotace);
+}
+
 .controls-hint {
   margin-top: 30px;
   font-size: 0.9rem;

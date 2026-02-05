@@ -45,6 +45,24 @@ function reducer(state, action) {
   }
 }
 
+const Leaderboard = ({ players, myId }) => {
+  const sortedPlayers = Object.values(players).sort((a, b) => b.score - a.score);
+  return (
+    <div className="leaderboard-glass">
+      <h2 className="neon-text">Dotačný Žebříček</h2>
+      <ul className="player-list">
+        {sortedPlayers.map((p, i) => (
+          <li key={p.id} className={`player-row ${i === 0 ? 'top-king' : ''}`}>
+            <span className="rank">#{i + 1}</span>
+            <span className="name">{p.id === myId ? 'VY' : `SÚPER (${p.id.substr(0,4)})`}</span>
+            <span className="donut-total">{p.score} 🍩</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
 function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const socketRef = useRef();
@@ -104,6 +122,11 @@ function App() {
 
     socketRef.current.on('donutsUpdate', (d) => dispatch({ type: 'UPDATE_DONUTS', payload: d }));
     socketRef.current.on('subsidiesUpdate', (s) => dispatch({ type: 'UPDATE_SUBSIDIES', payload: s }));
+
+    socketRef.current.on('playerDisconnected', (id) => {
+      dispatch({ type: 'UPDATE_PLAYERS', payload: Object.fromEntries(Object.entries(state.players).filter(([k]) => k !== id)) });
+      delete displayPlayersRef.current[id];
+    });
 
     return () => socketRef.current.disconnect();
   }, [state.myId]);
@@ -216,29 +239,34 @@ function App() {
         </div>
       </div>
 
-      <div className={`arena ${isCrisis ? 'crisis' : ''}`} style={{ width: state.arenaSize, height: state.arenaSize }}>
-        {isCrisis && <div className="campaign-alert">KAMPÁŇ!</div>}
-        {state.donuts.map(d => <div key={d.id} className="donut" style={{ left: d.x, top: d.y }}>🍩</div>)}
-        {state.subsidies.map(s => <div key={s.id} className="subsidy-packet" style={{ left: s.x, top: s.y }}>💰</div>)}
-        
-        {state.particles.map(p => (
-          <div key={p.id} className="particle-burst" style={{ 
-            left: p.x, 
-            top: p.y, 
-            backgroundColor: p.color,
-            '--tx': `${p.tx}px`,
-            '--ty': `${p.ty}px`,
-            boxShadow: `0 0 10px ${p.color}, 0 0 20px ${p.color}`
-          }} />
-        ))}
+      <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+        <div className={`arena ${isCrisis ? 'crisis' : ''}`} style={{ width: state.arenaSize, height: state.arenaSize }}>
+          {isCrisis && <div className="campaign-alert">KAMPÁŇ!</div>}
+          {state.donuts.map(d => <div key={d.id} className="donut" style={{ left: d.x, top: d.y }}>🍩</div>)}
+          {state.subsidies.map(s => <div key={s.id} className="subsidy-packet" style={{ left: s.x, top: s.y }}>💰</div>)}
+          
+          {state.particles.map(p => (
+            <div key={p.id} className="particle-burst" style={{ 
+              left: p.x, 
+              top: p.y, 
+              backgroundColor: p.color,
+              '--tx': `${p.tx}px`,
+              '--ty': `${p.ty}px`,
+              boxShadow: `0 0 10px ${p.color}, 0 0 20px ${p.color}`
+            }} />
+          ))}
 
-        {Object.values(state.players).map(p => (
-          <div key={p.id} data-id={p.id} className="player"
-            style={{ backgroundColor: p.color, color: p.color, border: p.id === state.myId ? '2px solid white' : 'none' }}>
-            <div className="player-label">{p.id === state.myId ? 'VY' : 'SÚPER'} ({p.score})</div>
-          </div>
-        ))}
+          {Object.values(state.players).map(p => (
+            <div key={p.id} data-id={p.id} className="player"
+              style={{ backgroundColor: p.color, color: p.color, border: p.id === state.myId ? '2px solid white' : 'none' }}>
+              <div className="player-label">{p.id === state.myId ? 'VY' : 'SÚPER'} ({p.score})</div>
+            </div>
+          ))}
+        </div>
+        
+        <Leaderboard players={state.players} myId={state.myId} />
       </div>
+
       <div className="controls-hint">POUŽÍVAJTE ŠÍPKY NA POHYB</div>
     </div>
   );
