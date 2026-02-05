@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useReducer, useState, useMemo } from 'react';
 import { io } from 'socket.io-client';
 import { playSound, stopSound } from './AudioManager';
 import { packPosition, packDelta, unpackDelta } from './BinaryProtocol';
+import TutorialOverlay, { hasSeenTutorial } from './TutorialOverlay';
+import AdminPanel from './AdminPanel';
 import './App.css';
 
 const SOCKET_URL = 'http://localhost:3001';
@@ -76,6 +78,7 @@ const Analytics = ({ history }) => {
 function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [showAnnouncer, setShowAnnouncer] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(() => !hasSeenTutorial());
   const socketRef = useRef();
   const workerRef = useRef();
   const playerPosRef = useRef({ x: 0, y: 0 });
@@ -159,6 +162,8 @@ function App() {
 
   return (
     <div className="game-container">
+      <TutorialOverlay open={showTutorial} onClose={() => setShowTutorial(false)} />
+      <AdminPanel socket={socketRef.current} />
       {state.winner && <div className="winner-modal"><div className="winner-title">VÍTĚZNÝ ÚNOR</div><div className="winner-name">KRÁĽ: {state.winner.id === state.myId ? 'VY' : 'SÚPER'} ({state.winner.score})</div><div className="bude-lip">BUDE LÍP!</div><button className="btn-restart" onClick={() => socketRef.current.emit('requestReset')}>NOVÁ KAMPÁŇ</button></div>}
       {showAnnouncer && state.activeEvent && (<div className="event-announcer"><div className="announcer-title">MIMOŘÁDNÁ ZPRÁVA</div><div className="announcer-text">{state.activeEvent.name}</div></div>)}
       <div className="hud-glass"><h1 className="title-neon">Donut Duel</h1><div className="stats-row"><div className="stat-card"><span>ČAS</span><span className="count-neon">{state.timeLeft}s</span></div><div className="stat-card"><span>KOBLIHY</span><span className="count-neon">{state.players[state.myId]?.score || 0}</span></div><div className="stat-card"><span>DOTÁCIE</span><span className={`status-neon ${state.players[state.myId]?.subsidyActive ? 'active-text' : ''}`}>{state.players[state.myId]?.subsidyActive ? 'AKTÍVNE' : 'ČEKÁNÍ'}</span></div></div></div>
