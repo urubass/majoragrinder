@@ -155,6 +155,38 @@ body {
   animation: bounce 1s infinite alternate;
 }
 
+/* Animace pro KAMPÁŇ (krize) */
+@keyframes campaign-flash {
+  0% { background-color: rgba(255, 0, 0, 0.1); }
+  50% { background-color: rgba(255, 0, 0, 0.4); }
+  100% { background-color: rgba(255, 0, 0, 0.1); }
+}
+
+@keyframes text-flash {
+  0% { opacity: 0.2; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0.2; transform: scale(1); }
+}
+
+.arena.crisis {
+  animation: campaign-flash 0.5s infinite;
+  border-color: #ff0000 !important;
+}
+
+.campaign-alert {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 8rem;
+  font-weight: 900;
+  color: rgba(255, 0, 0, 0.3);
+  pointer-events: none;
+  z-index: 1;
+  letter-spacing: 10px;
+  animation: text-flash 0.5s infinite;
+}
+
 .controls-hint {
   margin-top: 30px;
   font-size: 0.9rem;

@@ -102,6 +102,7 @@ function App() {
   const myPlayer = myId && players[myId] ? players[myId] : null;
   const myScore = myPlayer ? myPlayer.score : 0;
   const isSubsidyActive = myPlayer ? myPlayer.subsidyActive : false;
+  const isCrisis = donuts.length < 3;
 
   return (
     <div className="game-container">
@@ -125,7 +126,9 @@ function App() {
         </div>
       </div>
 
-      <div className="arena" style={{ width: arenaSize, height: arenaSize }}>
+      <div className={`arena ${isCrisis ? 'crisis' : ''}`} style={{ width: arenaSize, height: arenaSize }}>
+        {isCrisis && <div className="campaign-alert">KAMPÁŇ!</div>}
+        
         {donuts.map(donut => (
           <div
             key={donut.id}
