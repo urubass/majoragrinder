@@ -73,11 +73,21 @@ function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [showAnnouncer, setShowAnnouncer] = useState(false);
   const socketRef = useRef();
+  const workerRef = useRef();
   const playerPosRef = useRef({ x: 0, y: 0 });
   const displayPlayersRef = useRef({});
   const requestRef = useRef();
 
   useEffect(() => {
+    // Initialize Web Worker for binary processing
+    workerRef.current = new Worker(new URL('./BinaryWorker.js', import.meta.url));
+    workerRef.current.onmessage = (e) => {
+      if (e.data.type === 'POSITION_UNPACKED') {
+        // Multi-threaded position processing complete
+        // console.log('Worker unpacked:', e.data.x, e.data.y);
+      }
+    };
+
     socketRef.current = io(SOCKET_URL);
     socketRef.current.on('init', (data) => {
       dispatch({ type: 'INIT', payload: data });
@@ -113,7 +123,10 @@ function App() {
     socketRef.current.on('donutsUpdate', (d) => dispatch({ type: 'UPDATE_DONUTS', payload: d }));
     socketRef.current.on('subsidiesUpdate', (s) => dispatch({ type: 'UPDATE_SUBSIDIES', payload: s }));
     socketRef.current.on('playerDisconnected', (id) => { dispatch({ type: 'PLAYER_DISC', payload: id }); delete displayPlayersRef.current[id]; });
-    return () => socketRef.current.disconnect();
+    return () => {
+      socketRef.current.disconnect();
+      workerRef.current.terminate();
+    };
   }, [state.myId]);
 
   const spawnParticles = (x, y, color) => {
@@ -150,8 +163,12 @@ function App() {
       x = Math.max(0, Math.min(state.arenaSize-34, x)); y = Math.max(0, Math.min(state.arenaSize-34, y));
       if (x !== playerPosRef.current.x || y !== playerPosRef.current.y) {
         playerPosRef.current = { x, y };
-        // Client-side prediction: move immediately in state
         dispatch({ type: 'UPDATE_PLAYER', payload: { ...p, x, y } });
+        
+        // Multi-threaded binary processing
+        const buffer = packPosition(x, y);
+        workerRef.current.postMessage({ type: 'UNPACK_POSITION', buffer }, [buffer]);
+        
         socketRef.current.emit('move', { x, y });
       }
     };
