@@ -111,4 +111,4 @@ node dashboard/server.js
 
 ## CREDITS
 - Šaňo (Grinder) — glue code, fixy, „držte piču a makáme“
-- Babiš (Majordomus vibe) — vizionárske hlášky, tlak na sprinty
+- Babiš — vizionárske hlášky, tlak na sprinty
